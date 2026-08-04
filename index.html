@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shtampchi — Muhr va shtamp 15 daqiqada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-900:#140E2E;
+  --ink-800:#1B1340;
+  --ink-700:#261B56;
+  --ink-600:#33256E;
+  --violet:#6E4FD4;
+  --violet-lite:#A791F5;
+  --brass:#C9A961;
+  --brass-dim:#8C7440;
+  --paper:#F0EDE4;
+  --muted:#B6ADD2;
+  --r:14px;
+  --pad:clamp(20px,5vw,64px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink-900);
+  color:var(--paper);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:var(--pad)}
+
+.disp{
+  font-family:"Archivo",system-ui,sans-serif;
+  font-variation-settings:'wdth' 118,'wght' 800;
+  text-transform:uppercase;
+  line-height:.94;
+  letter-spacing:-.01em;
+}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--brass);
+}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(20,14,46,.82);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(169,145,245,.16);
+}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.mark{
+  font-family:"Archivo",sans-serif;
+  font-variation-settings:'wdth' 125,'wght' 900;
+  font-size:17px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--paper);text-decoration:none;
+}
+.mark span{color:var(--brass)}
+.nav-links{display:flex;gap:10px;align-items:center}
+.nav-tel{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;
+  color:var(--muted);text-decoration:none;white-space:nowrap;
+}
+.nav-tel:hover{color:var(--paper)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 110,'wght' 700;
+  text-transform:uppercase;letter-spacing:.05em;font-size:13px;
+  padding:12px 20px;border-radius:999px;border:none;cursor:pointer;
+  text-decoration:none;transition:transform .16s,background .2s,box-shadow .2s;
+}
+.btn-solid{background:var(--brass);color:#221704;box-shadow:0 6px 22px rgba(201,169,97,.24)}
+.btn-solid:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(201,169,97,.34)}
+.btn-ghost{background:transparent;color:var(--paper);border:1.5px solid rgba(169,145,245,.4)}
+.btn-ghost:hover{border-color:var(--violet-lite);background:rgba(110,79,212,.16)}
+.btn-sm{padding:9px 16px;font-size:12px}
+.btn:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:3px solid var(--violet-lite);outline-offset:3px;
+}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(28px,6vw,64px) clamp(40px,7vw,84px);position:relative}
+.hero::before{
+  content:"";position:absolute;inset:-10% -20% 40% 30%;
+  background:radial-gradient(circle at 60% 40%,rgba(110,79,212,.4),transparent 62%);
+  filter:blur(50px);pointer-events:none;z-index:0;
+}
+.hero-in{display:grid;grid-template-columns:1fr;gap:clamp(20px,4vw,44px);position:relative;z-index:1}
+@media(min-width:900px){
+  .hero-in{grid-template-columns:1.02fr .98fr;align-items:center}
+}
+.hero h1{
+  font-size:clamp(40px,8.4vw,80px);
+  margin:14px 0 0;
+}
+.hero h1 em{
+  font-style:normal;display:block;color:var(--brass);
+}
+.hero p.lede{
+  color:var(--muted);font-size:clamp(15px,2.1vw,18px);
+  margin-top:18px;max-width:44ch;
+}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero-facts{
+  display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:26px;
+  padding-top:20px;border-top:1px solid rgba(169,145,245,.18);
+}
+.fact{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
+.fact b{color:var(--paper);font-weight:500}
+
+/* ---------- 3d stage ---------- */
+.stage{
+  position:relative;border-radius:20px;overflow:hidden;
+  background:linear-gradient(168deg,var(--ink-700),var(--ink-900));
+  border:1px solid rgba(169,145,245,.2);
+  aspect-ratio:1/1;max-height:60vh;width:100%;
+}
+@media(min-width:900px){.stage{max-height:none;aspect-ratio:4/4.3}}
+#gl{display:block;width:100%;height:100%;cursor:pointer;touch-action:manipulation}
+.stage-hint{
+  position:absolute;left:0;right:0;bottom:14px;text-align:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--violet-lite);pointer-events:none;
+  transition:opacity .4s;
+}
+.stage-hint.gone{opacity:0}
+.stage-fallback{
+  position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:24px;
+  color:var(--muted);font-size:14px;
+}
+
+/* ---------- sections ---------- */
+.sec{padding-block:clamp(48px,8vw,96px)}
+.sec-head{max-width:52ch;margin-bottom:clamp(24px,4vw,44px)}
+.sec-head h2{font-size:clamp(28px,5.2vw,46px);margin-top:12px}
+.sec-head p{color:var(--muted);margin-top:14px}
+
+.band{background:var(--ink-800);border-block:1px solid rgba(169,145,245,.14)}
+
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{
+  background:var(--ink-700);border:1px solid rgba(169,145,245,.16);
+  border-radius:var(--r);padding:22px;
+  transition:border-color .2s,transform .2s;
+}
+.card:hover{border-color:rgba(201,169,97,.5);transform:translateY(-3px)}
+.card h3{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 112,'wght' 700;
+  font-size:17px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:8px;
+}
+.card p{color:var(--muted);font-size:14.5px}
+.card .tag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--brass);
+  border:1px solid var(--brass-dim);border-radius:999px;padding:3px 10px;margin-bottom:14px;
+}
+
+/* steps — real sequence, order matters */
+.steps{display:grid;gap:1px;background:rgba(169,145,245,.18);border-radius:var(--r);overflow:hidden}
+@media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{background:var(--ink-900);padding:26px 22px}
+.step .num{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 125,'wght' 900;
+  font-size:42px;color:var(--violet);line-height:1;display:block;margin-bottom:12px;
+}
+.step h3{font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 110,'wght' 700;
+  font-size:16px;text-transform:uppercase;margin-bottom:8px}
+.step p{color:var(--muted);font-size:14.5px}
+
+/* ---------- order form ---------- */
+.order{
+  background:var(--ink-700);border:1px solid rgba(201,169,97,.32);
+  border-radius:20px;padding:clamp(22px,4vw,40px);
+}
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin-bottom:7px;
+}
+.field select,.field input,.field textarea{
+  width:100%;background:var(--ink-900);color:var(--paper);
+  border:1.5px solid rgba(169,145,245,.28);border-radius:10px;
+  padding:13px 14px;font-family:"IBM Plex Sans",sans-serif;font-size:15px;
+}
+.field textarea{min-height:88px;resize:vertical}
+.field select:hover,.field input:hover,.field textarea:hover{border-color:rgba(169,145,245,.5)}
+.order-row{display:grid;gap:16px}
+@media(min-width:640px){.order-row{grid-template-columns:1fr 1fr}}
+.order-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.order-note{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);
+  margin-top:16px;line-height:1.5;
+}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.toast{
+  margin-top:14px;padding:12px 14px;border-radius:10px;font-size:14px;
+  background:rgba(110,79,212,.2);border:1px solid var(--violet);
+  display:none;
+}
+.toast.on{display:block}
+.toast.ok{background:rgba(201,169,97,.16);border-color:var(--brass)}
+.toast.err{background:rgba(224,90,90,.14);border-color:#E05A5A}
+.btn[disabled]{opacity:.55;cursor:progress;transform:none!important}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid rgba(169,145,245,.18);padding-block:40px 56px}
+.foot-in{display:grid;gap:26px}
+@media(min-width:760px){.foot-in{grid-template-columns:1.4fr 1fr 1fr}}
+.foot h4{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:12px;
+}
+.foot a{color:var(--paper);text-decoration:none;display:block;margin-bottom:7px;font-size:15px}
+.foot a:hover{color:var(--violet-lite)}
+.foot p{color:var(--muted);font-size:14px}
+.foot .mark{font-size:22px;display:inline-block;margin-bottom:10px}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-in">
+    <a class="mark" href="#top">SHTAMP<span>CHI</span></a>
+    <div class="nav-links">
+      <a class="nav-tel" href="tel:+998994201151">+998 99 420 11 51</a>
+      <a class="btn btn-solid btn-sm" href="#buyurtma">Buyurtma</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-in">
+    <div>
+      <div class="eyebrow">Muhr · Shtamp · Rekvizit</div>
+      <h1 class="disp">Muhringiz<em>15 daqiqada</em></h1>
+      <p class="lede">Kelasiz, maketni tasdiqlaysiz, tayyor muhrni olib ketasiz. Kutish yo'q, ertaga qaytish yo'q.</p>
+      <div class="hero-cta">
+        <a class="btn btn-solid" href="#buyurtma">Buyurtma berish</a>
+        <a class="btn btn-ghost" href="tel:+998994201151">Qo'ng'iroq qilish</a>
+      </div>
+      <div class="hero-facts">
+        <div class="fact">Tayyorlash: <b>15 daqiqa</b></div>
+        <div class="fact">Joylashuv: <b>shahar markazi</b></div>
+        <div class="fact">Telegram: <b>@shtampchi_bola</b></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <canvas id="gl" aria-label="Muhrni bosib ko'rish uchun interaktiv 3D model" role="img"></canvas>
+      <div class="stage-fallback" id="fallback">Muhr namunasi.<br>Buyurtma uchun pastdagi shaklni to'ldiring.</div>
+      <div class="stage-hint" id="hint">Muhrni bosib ko'ring</div>
+    </div>
+  </div>
+</header>
+
+<section class="sec band">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Nima yasaymiz</div>
+      <h2 class="disp">Hujjatga kerak<br>bo'lgan hammasi</h2>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">Yumaloq</span>
+        <h3>MCHJ muhri</h3>
+        <p>Tashkilot nomi, STIR va manzil bilan standart yumaloq muhr.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Yumaloq</span>
+        <h3>YaTT muhri</h3>
+        <p>Yakka tartibdagi tadbirkorlar uchun. Guvohnoma raqami bo'yicha.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Avtomatik</span>
+        <h3>Avtomatik muhr</h3>
+        <p>Ichki bo'yoq yostiqchali korpus. Qo'l bilan bo'yashning hojati yo'q.</p>
+      </div>
+      <div class="card">
+        <span class="tag">To'rtburchak</span>
+        <h3>Rekvizit shtampi</h3>
+        <p>Bank rekvizitlari, manzil va telefon — bir bosishda hujjatga tushadi.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Maxsus</span>
+        <h3>Faksimile</h3>
+        <p>Imzoning aniq nusxasi. Har kuni ko'p hujjat imzolaydiganlar uchun.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Maxsus</span>
+        <h3>Datali shtamp</h3>
+        <p>Sanasi almashadigan shtamp: "To'landi", "Qabul qilindi", "Nusxa asli bilan bir xil".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Uch qadam</div>
+      <h2 class="disp">Qanday buyurtma<br>beriladi</h2>
+      <p>Tartib muhim: maket tasdiqlanmaguncha ishlab chiqarish boshlanmaydi, shuning uchun xato muhr chiqmaydi.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="num">1</span>
+        <h3>Ma'lumot yuborasiz</h3>
+        <p>Guvohnoma yoki eski muhr suratini Telegramga tashlaysiz. Matnni qo'lda yozsangiz ham bo'ladi.</p>
+      </div>
+      <div class="step">
+        <span class="num">2</span>
+        <h3>Maketni ko'rasiz</h3>
+        <p>Muhr qanday chiqishini rasmda yuboramiz. O'zgartirish bepul — tasdiqlaguningizcha.</p>
+      </div>
+      <div class="step">
+        <span class="num">3</span>
+        <h3>15 daqiqada olasiz</h3>
+        <p>Tasdiqlaganingizdan keyin tayyorlanadi. Kelib olasiz yoki yetkazib beramiz.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec band" id="buyurtma">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Buyurtma</div>
+      <h2 class="disp">Shaklni to'ldiring</h2>
+      <p>Yuborganingizdan keyin buyurtma to'g'ridan-to'g'ri bizga tushadi va tez orada qo'ng'iroq qilamiz.</p>
+    </div>
+
+    <div class="order">
+      <div class="field">
+        <label for="tur">Nima kerak</label>
+        <select id="tur">
+          <option>MCHJ muhri</option>
+          <option>YaTT muhri</option>
+          <option>Avtomatik muhr</option>
+          <option>Rekvizit shtampi</option>
+          <option>Faksimile</option>
+          <option>Datali shtamp</option>
+          <option>Bilmayman — maslahat kerak</option>
+        </select>
+      </div>
+      <div class="order-row">
+        <div class="field">
+          <label for="ism">Ismingiz</label>
+          <input id="ism" type="text" placeholder="Masalan: Bekzod">
+        </div>
+        <div class="field">
+          <label for="tel">Telefon</label>
+          <input id="tel" type="tel" inputmode="tel" placeholder="+998 __ ___ __ __">
+        </div>
+      </div>
+      <div class="field">
+        <label for="izoh">Muhrdagi matn yoki izoh</label>
+        <textarea id="izoh" placeholder="Tashkilot nomi, STIR, shahar — bilganingizcha yozing"></textarea>
+      </div>
+      <div class="hp" aria-hidden="true">
+        <label for="website">Saytingiz</label>
+        <input id="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="order-actions">
+        <button class="btn btn-solid" id="send">Buyurtmani yuborish</button>
+        <a class="btn btn-ghost" href="https://t.me/shtampchi_bola" target="_blank" rel="noopener">Telegramda yozish</a>
+      </div>
+      <div class="toast" id="toast"></div>
+      <p class="order-note">Narxni Telegramda bir daqiqada aytamiz — u muhr turiga va korpusiga bog'liq.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div>
+      <a class="mark" href="#top">SHTAMP<span>CHI</span></a>
+      <p>Muhr, shtamp va rekvizit tayyorlash. Shahar markazida.</p>
+    </div>
+    <div>
+      <h4>Bog'lanish</h4>
+      <a href="tel:+998994201151">+998 99 420 11 51</a>
+      <a href="https://t.me/shtampchi_bola" target="_blank" rel="noopener">Telegram: @shtampchi_bola</a>
+    </div>
+    <div>
+      <h4>Ish vaqti</h4>
+      <p>Dushanba–Shanba<br>9:00 – 18:00</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- order form ---------- */
+(function(){
+  var btn=document.getElementById('send'),toast=document.getElementById('toast');
+  var TG='https://t.me/shtampchi_bola';
+
+  function say(txt,kind){
+    toast.textContent=txt;
+    toast.className='toast on'+(kind?' '+kind:'');
+  }
+
+  btn.addEventListener('click',function(){
+    var payload={
+      tur:document.getElementById('tur').value,
+      ism:document.getElementById('ism').value.trim(),
+      tel:document.getElementById('tel').value.trim(),
+      izoh:document.getElementById('izoh').value.trim(),
+      website:document.getElementById('website').value
+    };
+
+    if(!payload.tel&&!payload.ism){
+      say('Telefon raqamingizni yozing — shusiz bog\'lana olmaymiz.','err');
+      document.getElementById('tel').focus();
+      return;
+    }
+
+    btn.disabled=true;
+    say('Yuborilmoqda…');
+
+    fetch('/.netlify/functions/order',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    })
+    .then(function(r){return r.json().catch(function(){return {ok:false};});})
+    .then(function(res){
+      btn.disabled=false;
+      if(res&&res.ok){
+        say('Buyurtma qabul qilindi. Tez orada qo\'ng\'iroq qilamiz.','ok');
+        document.getElementById('ism').value='';
+        document.getElementById('tel').value='';
+        document.getElementById('izoh').value='';
+      }else{
+        say('Yuborishda muammo chiqdi. Telegramda yozing yoki qo\'ng\'iroq qiling: +998 99 420 11 51','err');
+      }
+    })
+    .catch(function(){
+      btn.disabled=false;
+      say('Aloqa yo\'q. Telegram ochilmoqda — buyurtmangizni o\'sha yerga yozing.','err');
+      setTimeout(function(){window.open(TG,'_blank','noopener');},900);
+    });
+  });
+})();
+
+/* ---------- seal face texture ---------- */
+function sealTexture(inkColor,bg,alpha){
+  var S=512,c=document.createElement('canvas');c.width=c.height=S;
+  var x=c.getContext('2d');
+  if(bg){x.fillStyle=bg;x.fillRect(0,0,S,S);}else{x.clearRect(0,0,S,S);}
+  var cx=S/2,cy=S/2;
+  x.strokeStyle=inkColor;x.fillStyle=inkColor;x.globalAlpha=alpha||1;
+
+  x.lineWidth=13;x.beginPath();x.arc(cx,cy,232,0,Math.PI*2);x.stroke();
+  x.lineWidth=5; x.beginPath();x.arc(cx,cy,208,0,Math.PI*2);x.stroke();
+  x.lineWidth=4; x.beginPath();x.arc(cx,cy,138,0,Math.PI*2);x.stroke();
+
+  function arcText(txt,radius,size,startAng,dir){
+    x.save();x.translate(cx,cy);
+    x.font='700 '+size+'px Archivo, Arial, sans-serif';
+    x.textAlign='center';x.textBaseline='middle';
+    var per=(size*0.80)/radius, total=per*(txt.length-1);
+    for(var i=0;i<txt.length;i++){
+      var a=startAng+dir*(i*per-total/2);
+      x.save();x.rotate(a);
+      x.translate(0,dir>0?-radius:radius);
+      if(dir<0)x.rotate(Math.PI);
+      x.fillText(txt[i],0,0);
+      x.restore();
+    }
+    x.restore();
+  }
+  arcText('«NAMUNA» MAS\'ULIYATI CHEKLANGAN JAMIYAT',174,29,0,1);
+  arcText('TOSHKENT SHAHRI',174,27,Math.PI,-1);
+
+  x.save();x.translate(cx,cy);
+  x.textAlign='center';x.textBaseline='middle';
+  x.font='800 46px Archivo, Arial, sans-serif';
+  x.fillText('MUHR',0,-26);
+  x.font='500 26px "IBM Plex Mono", monospace';
+  x.fillText('STIR 000 000 000',0,22);
+  x.beginPath();x.moveTo(-58,52);x.lineTo(58,52);x.lineWidth=3;x.stroke();
+  x.restore();
+
+  x.globalAlpha=1;
+  var t=new THREE.CanvasTexture(c);
+  t.anisotropy=4;
+  return t;
+}
+
+/* ---------- three.js scene ---------- */
+(function(){
+  var cv=document.getElementById('gl');
+  if(!window.THREE){document.getElementById('fallback').style.display='grid';return;}
+  var renderer;
+  try{
+    renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  }catch(e){
+    document.getElementById('fallback').style.display='grid';return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(34,1,0.1,100);
+  camera.position.set(0,2.5,7.4);
+  camera.lookAt(0,.55,0);
+
+  scene.add(new THREE.AmbientLight(0x8f7ce0,0.65));
+  var key=new THREE.DirectionalLight(0xfff4dd,1.15);
+  key.position.set(3.2,6,4.4);scene.add(key);
+  var rim=new THREE.PointLight(0x8a6bff,1.5,16);
+  rim.position.set(-4,2.2,-2.6);scene.add(rim);
+  var warm=new THREE.PointLight(0xc9a961,0.9,14);
+  warm.position.set(3,1.2,3);scene.add(warm);
+
+  /* paper */
+  var paper=new THREE.Mesh(
+    new THREE.PlaneGeometry(6.2,6.2),
+    new THREE.MeshLambertMaterial({color:0xF0EDE4})
+  );
+  paper.rotation.x=-Math.PI/2;paper.position.y=-1.02;scene.add(paper);
+
+  /* impression on paper */
+  var imprintMat=new THREE.MeshBasicMaterial({
+    map:sealTexture('#3B2585',null,0.9),transparent:true,opacity:0,depthWrite:false
+  });
+  var imprint=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),imprintMat);
+  imprint.rotation.x=-Math.PI/2;imprint.position.set(0,-1.008,0);
+  imprint.rotation.z=-0.07;scene.add(imprint);
+
+  /* stamp */
+  var stamp=new THREE.Group();
+  var matBody =new THREE.MeshPhongMaterial({color:0x2B1E5E,shininess:70,specular:0x6E4FD4});
+  var matDark =new THREE.MeshPhongMaterial({color:0x1C1440,shininess:40});
+  var matBrass=new THREE.MeshPhongMaterial({color:0xC9A961,shininess:130,specular:0xfff0c0});
+
+  var knob=new THREE.Mesh(new THREE.SphereGeometry(0.52,32,24),matBody);
+  knob.scale.y=0.72;knob.position.y=1.72;stamp.add(knob);
+
+  var neck=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.24,0.78,28),matDark);
+  neck.position.y=1.14;stamp.add(neck);
+
+  var collar=new THREE.Mesh(new THREE.CylinderGeometry(0.66,0.66,0.11,40),matBrass);
+  collar.position.y=0.72;stamp.add(collar);
+
+  var body=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.92,0.62,40),matBody);
+  body.position.y=0.35;stamp.add(body);
+
+  var ring=new THREE.Mesh(new THREE.CylinderGeometry(0.94,0.94,0.07,44),matBrass);
+  ring.position.y=0.02;stamp.add(ring);
+
+  var base=new THREE.Mesh(new THREE.CylinderGeometry(0.96,0.96,0.16,44),matDark);
+  base.position.y=-0.09;stamp.add(base);
+
+  var die=new THREE.Mesh(
+    new THREE.CircleGeometry(0.9,44),
+    new THREE.MeshBasicMaterial({map:sealTexture('#C9A961','#241748',1),side:THREE.DoubleSide})
+  );
+  die.rotation.x=Math.PI/2;die.position.y=-0.172;stamp.add(die);
+
+  stamp.position.y=0.55;
+  scene.add(stamp);
+
+  /* resize */
+  function resize(){
+    var w=cv.clientWidth,h=cv.clientHeight;
+    if(!w||!h)return;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize',resize);resize();
+
+  /* press animation */
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t0=performance.now(),pressing=false,pressT=0,imprintOpacity=0,idle=true;
+  var hint=document.getElementById('hint');
+
+  function press(){
+    if(pressing)return;
+    pressing=true;pressT=0;idle=false;
+    hint.classList.add('gone');
+  }
+  cv.addEventListener('click',press);
+  cv.addEventListener('touchstart',function(e){e.preventDefault();press();},{passive:false});
+
+  if(reduce){
+    imprintOpacity=0.92;imprintMat.opacity=0.92;
+    stamp.position.y=0.85;hint.classList.add('gone');
+  }
+
+  function frame(now){
+    var t=(now-t0)/1000;
+    if(!reduce){
+      if(pressing){
+        pressT+=1/60;
+        var d=pressT/1.15;
+        if(d>=1){pressing=false;idle=true;}
+        else{
+          var y;
+          if(d<0.34){y=0.55-(d/0.34)*1.42;}
+          else if(d<0.5){y=-0.87;}
+          else{y=-0.87+((d-0.5)/0.5)*1.42;}
+          stamp.position.y=y;
+          if(d>0.36&&imprintOpacity<0.92){imprintOpacity+=0.075;}
+        }
+      }else{
+        stamp.position.y=0.55+Math.sin(t*1.1)*0.055;
+      }
+      if(idle){stamp.rotation.y=Math.sin(t*0.34)*0.42;}
+      imprintMat.opacity=Math.min(imprintOpacity,0.92);
+      imprint.rotation.z=-0.07;
+    }
+    renderer.render(scene,camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* auto-demo once, so the idea is visible without a tap */
+  if(!reduce)setTimeout(press,2200);
+})();
+</script>
+</body>
+</html>
