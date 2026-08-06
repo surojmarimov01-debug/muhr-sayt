@@ -1,11 +1,10 @@
-// Telegram bot — tayyor javoblar va mijoz xabarlarini egaga uzatish.
-// Webhook manzili: https://SIZNING-SAYT/.netlify/functions/telegram
+// Telegram bot — avtomat javoblar, menyu va ikki tomonlama yozishma.
+// Webhook: https://SIZNING-SAYT/.netlify/functions/telegram
 
 // ─────────── SOZLAMALAR ───────────
-// Faqat shu blokni tahrirlash kifoya.
 const SHOP = {
   nom: "Shtampchi",
-  manzil: "— manzilni shu yerga yozing —",
+  manzil: "Urganch tuman, Raysentr, Sherdor to'yxonasi yon tomoni",
   ishVaqti: "Dushanba–Shanba, 9:00–18:00",
   telefon: "+998 99 420 11 51",
   operator: "shtampchi_bola", // @ belgisisiz
@@ -14,10 +13,7 @@ const SHOP = {
 // ──────────────────────────────────
 
 const esc = (s) =>
-  String(s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const env = (k) =>
   typeof Netlify !== "undefined" && Netlify.env ? Netlify.env.get(k) : process.env[k];
@@ -40,7 +36,11 @@ const ORQAGA = { inline_keyboard: [[{ text: "‹ Menyuga qaytish", callback_data
 const SALOM =
   `Assalomu alaykum! Bu <b>${SHOP.nom}</b> boti.\n\n` +
   `Muhr, shtamp va rekvizit tayyorlaymiz — ${SHOP.muddat}da.\n\n` +
-  `Kerakli bo'limni tanlang yoki shunchaki savolingizni yozing:`;
+  `Bo'limni tanlang yoki savolingizni yozing — javob beraman:`;
+
+const manzilMatni = SHOP.manzil
+  ? `📍 ${SHOP.manzil}\n`
+  : `📍 Manzilni operatordan so'rang\n`;
 
 const JAVOB = {
   mahsulot:
@@ -51,50 +51,63 @@ const JAVOB = {
     "• Rekvizit shtampi\n" +
     "• Faksimile (imzo nusxasi)\n" +
     "• Datali shtamp: To'landi, Qabul qilindi, Nusxa asli bilan bir xil\n\n" +
-    "Ro'yxatda yo'q narsa kerakmi? Yozing — aytamiz.",
+    "Qaysi biri kerakligini yozing — narxini aytaman.",
 
   narx:
     "<b>Narxlar</b>\n\n" +
-    "Narx muhr turiga va korpusiga bog'liq, shuning uchun aniq raqamni suhbatda aytamiz.\n\n" +
-    "Sizga nima kerakligini yozing — bir daqiqada narxini aytaman.",
+    "Narx muhr turiga va korpusiga bog'liq.\n\n" +
+    "Sizga nima kerakligini yozing — bir daqiqada aniq narxini aytaman.\n" +
+    `Yoki qo'ng'iroq qiling: ${SHOP.telefon}`,
 
   muddat:
     "<b>Qancha vaqtda tayyor</b>\n\n" +
     `Maketni tasdiqlaganingizdan keyin <b>${SHOP.muddat}</b>.\n\n` +
-    "Tartib shunday:\n" +
     "1. Guvohnoma yoki eski muhr suratini yuborasiz\n" +
     "2. Maketni ko'rasiz, o'zgartirish bepul\n" +
     "3. Tasdiqlaysiz — tayyorlanadi",
 
   manzil:
     "<b>Manzil va ish vaqti</b>\n\n" +
-    `📍 ${SHOP.manzil}\n` +
+    manzilMatni +
     `🕘 ${SHOP.ishVaqti}\n` +
     `📞 ${SHOP.telefon}\n\n` +
     "Yetkazib berish ham bor.",
 
   buyurtma:
     "<b>Buyurtma berish</b>\n\n" +
-    "Quyidagilarni bitta xabarda yozing:\n\n" +
+    "Bitta xabarda yozing:\n\n" +
     "• Nima kerak (muhr / shtamp / rekvizit)\n" +
     "• Tashkilot nomi yoki muhrdagi matn\n" +
     "• Telefon raqamingiz\n\n" +
-    "Guvohnoma yoki eski muhr surati bo'lsa — shuni yuborsangiz ham bo'ladi.\n\n" +
-    "Xabaringiz to'g'ridan-to'g'ri bizga tushadi.",
+    "Guvohnoma yoki eski muhr surati bo'lsa — shuni yuboring.",
 };
+
+// ── Kalit so'zlar. Tartib muhim: yuqoridagisi avval tekshiriladi. ──
+const QOIDALAR = [
+  ["narx", ["narx", "qancha turadi", "qanchaga", "pochom", "pochomga", "цен", "стоим", "сколько", "price"]],
+  ["muddat", ["qancha vaqt", "muddat", "qachon tayyor", "tez", "necha kun", "necha soat", "срок", "когда", "быстро"]],
+  ["manzil", ["manzil", "qayerda", "qayersiz", "joylash", "adres", "lokatsiya", "mo'ljal", "moljal", "адрес", "где", "ish vaqti", "soat nechi"]],
+  ["buyurtma", ["buyurtma", "zakaz", "заказ", "buyurtma bermoq", "olmoqchi", "kerak edi"]],
+  ["mahsulot", ["muhr", "muhr", "shtamp", "pechat", "печат", "штамп", "rekvizit", "faksimile", "faksimil", "mchj", "yatt", "datali"]],
+];
+
+function javobTop(matn) {
+  const t = matn.toLowerCase().replace(/[''`ʻʼ]/g, "'");
+  for (const [kalit, sozlar] of QOIDALAR) {
+    if (sozlar.some((s) => t.includes(s))) return kalit;
+  }
+  return null;
+}
 
 export default async (req) => {
   const ok = () => new Response("ok", { status: 200 });
-
   if (req.method !== "POST") return ok();
 
   const TOKEN = env("TELEGRAM_TOKEN");
   const OWNER = env("TELEGRAM_CHAT_ID");
   const SECRET = env("TELEGRAM_WEBHOOK_SECRET");
-
   if (!TOKEN || !OWNER) return ok();
 
-  // Ixtiyoriy himoya: setWebhook'da secret_token bergan bo'lsangiz ishlaydi.
   if (SECRET && req.headers.get("x-telegram-bot-api-secret-token") !== SECRET) {
     return new Response("forbidden", { status: 403 });
   }
@@ -128,46 +141,81 @@ export default async (req) => {
     await api("answerCallbackQuery", { callback_query_id: cq.id });
     const chat = cq.message?.chat?.id;
     if (!chat) return ok();
-
     if (cq.data === "menyu") await send(chat, SALOM, MENU);
     else if (JAVOB[cq.data]) await send(chat, JAVOB[cq.data], ORQAGA);
     return ok();
   }
 
-  // ── Oddiy xabar ──
   const msg = update.message;
   if (!msg || !msg.chat) return ok();
 
   const chat = msg.chat.id;
-  const text = (msg.text || "").trim();
+  const matn = (msg.text || msg.caption || "").trim();
+  const egaMi = String(chat) === String(OWNER);
 
-  if (text === "/start" || text === "/menu" || text === "/help") {
+  // ── EGA javob yozganda: mijozga yetkazamiz ──
+  if (egaMi) {
+    const javob = msg.reply_to_message;
+    if (javob) {
+      // Mijoz ID sini ikki yo'l bilan topamiz.
+      let mijozId = javob.forward_from?.id || null;
+      if (!mijozId) {
+        const belgi = (javob.text || javob.caption || "").match(/#id(\d+)/);
+        if (belgi) mijozId = belgi[1];
+      }
+      if (mijozId) {
+        await api("copyMessage", {
+          chat_id: mijozId,
+          from_chat_id: chat,
+          message_id: msg.message_id,
+        });
+        await send(chat, "✅ Mijozga yuborildi.");
+      } else {
+        await send(
+          chat,
+          "Mijozni aniqlay olmadim. <b>#id</b> raqami bor xabarga javob yozing."
+        );
+      }
+    }
+    return ok();
+  }
+
+  // ── MIJOZ xabari ──
+  if (matn === "/start" || matn === "/menu" || matn === "/help") {
     await send(chat, SALOM, MENU);
     return ok();
   }
 
-  // Egadan kelgan xabarlarga javob bermaymiz.
-  if (String(chat) === String(OWNER)) return ok();
-
-  // Mijoz xabarini egaga uzatamiz.
   const from = msg.from || {};
   const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
   const username = from.username ? ` (@${esc(from.username)})` : "";
   const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
 
+  const kalit = matn ? javobTop(matn) : null;
+
+  // Avtomat javob
+  if (kalit) {
+    await send(chat, JAVOB[kalit], MENU);
+  } else {
+    await send(
+      chat,
+      "Xabaringiz yuborildi ✅\n\nTez orada javob beramiz. Shoshilinch bo'lsa: " + SHOP.telefon,
+      MENU
+    );
+  }
+
+  // Egaga xabar — har doim, mijoz yo'qolmasin.
   await api("forwardMessage", {
     chat_id: OWNER,
     from_chat_id: chat,
     message_id: msg.message_id,
   });
-  await send(OWNER, `💬 <b>Botga xabar</b> — ${havola}\nJavob berish uchun ismini bosing.`);
-
   await send(
-    chat,
-    "Xabaringiz yuborildi ✅\n\nTez orada javob beramiz. Shoshilinch bo'lsa qo'ng'iroq qiling: " +
-      SHOP.telefon,
-    ORQAGA
+    OWNER,
+    (kalit ? `🤖 <b>Avtomat javob berildi</b> (${kalit})` : `❗ <b>Javob kerak</b>`) +
+      `\n${havola}\n#id${from.id}\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>`
   );
 
   return ok();
 };
+
