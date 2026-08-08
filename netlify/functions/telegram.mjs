@@ -151,6 +151,15 @@ export default async (req) => {
       ...(reply_markup ? { reply_markup } : {}),
     });
 
+  const soraw = (chat_id, text) =>
+    api("sendMessage", {
+      chat_id,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+      reply_markup: { force_reply: true, input_field_placeholder: "Shu yerga yozing…" },
+    });
+
   let update;
   try {
     update = await req.json();
@@ -172,6 +181,11 @@ export default async (req) => {
     const chat = cq.message?.chat?.id;
     if (!chat) return ok();
     if (cq.data === "menyu") await send(chat, SALOM, MENU);
+    else if (cq.data === "buyurtma")
+      await soraw(
+        chat,
+        "📝 <b>Buyurtma (1/3)</b>\n\n🧾 Nima kerak? (masalan: dumaloq muhr, shtamp, rekvizit)"
+      );
     else if (JAVOB[cq.data]) await send(chat, JAVOB[cq.data], ORQAGA);
     else {
       // Noma'lum tugma — menyuni qaytaramiz.
@@ -237,10 +251,76 @@ export default async (req) => {
     return ok();
   }
 
+  if (matn === "/buyurtma") {
+    await soraw(
+      chat,
+      "📝 <b>Buyurtma (1/3)</b>\n\n🧾 Nima kerak? (masalan: dumaloq muhr, shtamp, rekvizit)"
+    );
+    return ok();
+  }
+
   const from = msg.from || {};
   const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
   const username = from.username ? ` (@${esc(from.username)})` : "";
   const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
+
+  // ── Bosqichma-bosqich buyurtma oqimi ──
+  const javob = msg.reply_to_message;
+  const oqimda = javob && /Buyurtma \(\d\/3\)/.test(javob.text || "");
+  if (oqimda) {
+    if (matn === "/bekor" || matn === "/start" || matn === "/menu") {
+      await send(chat, SALOM, MENU);
+      return ok();
+    }
+
+    const turBor = /🧾 Tur:\s*(.+)/.exec(javob.text);
+    const matnBor = /✍️ Matn:\s*(.+)/.exec(javob.text);
+    const ans = matn.slice(0, 300);
+
+    if (!turBor) {
+      await soraw(
+        chat,
+        "🧾 Tur: " +
+          esc(ans) +
+          "\n\n📝 <b>Buyurtma (2/3)</b>\n✍️ Muhr/shtampdagi matn yoki tashkilot nomini yozing:"
+      );
+      return ok();
+    } else if (!matnBor) {
+      await soraw(
+        chat,
+        "🧾 Tur: " +
+          esc(turBor[1].trim()) +
+          "\n✍️ Matn: " +
+          esc(ans) +
+          "\n\n📝 <b>Buyurtma (3/3)</b>\n📞 Telefon raqamingizni yozing:"
+      );
+      return ok();
+    } else {
+      await send(
+        chat,
+        "✅ <b>Buyurtmangiz qabul qilindi!</b>\n\nTez orada siz bilan bog'lanamiz. Rahmat! 🙏",
+        MENU
+      );
+      await send(
+        OWNER,
+        "🆕 <b>Yangi buyurtma</b>\n\n" +
+          "🧾 Tur: " +
+          esc(turBor[1].trim()) +
+          "\n" +
+          "✍️ Matn: " +
+          esc(matnBor[1].trim()) +
+          "\n" +
+          "📞 Tel: " +
+          esc(ans) +
+          "\n\n" +
+          havola +
+          "\n#id" +
+          from.id +
+          "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
+      );
+      return ok();
+    }
+  }
 
   const kalit = matn ? javobTop(matn) : null;
 
