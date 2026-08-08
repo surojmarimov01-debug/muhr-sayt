@@ -55,8 +55,11 @@ const JAVOB = {
 
   narx:
     "<b>Narxlar</b>\n\n" +
-    "Narx muhr turiga va korpusiga bog'liq.\n\n" +
-    "Sizga nima kerakligini yozing — bir daqiqada aniq narxini aytaman.\n" +
+    "• Mexanik (muhr / shtamp / rekvizit): <b>70 000 so'mdan</b>\n" +
+    "• Oddiy komplekt (muhr + shtamp): <b>140 000 so'mdan</b>\n" +
+    "• Avtomatik komplekt (muhr + shtamp): <b>320 000 so'm</b>\n\n" +
+    `Hammasi ${SHOP.muddat}da tayyor.\n\n` +
+    "Sizga nima kerakligini yozing — aniq narxini aytaman.\n" +
     `Yoki qo'ng'iroq qiling: ${SHOP.telefon}`,
 
   muddat:
