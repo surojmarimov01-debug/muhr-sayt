@@ -168,8 +168,7 @@ body{
 }
 
 /* ---------- pricing ---------- */
-.prices{display:grid;gap:14px;margin-bottom:clamp(26px,4vw,42px)}
-@media(min-width:720px){.prices{grid-template-columns:1fr 1fr}}
+.prices{display:grid;gap:14px;margin-bottom:clamp(26px,4vw,42px);grid-template-columns:repeat(auto-fit,minmax(238px,1fr))}
 .pricecard{position:relative;display:flex;flex-direction:column;gap:14px}
 .pricecard.pop{border-color:rgba(201,169,97,.5)}
 .pricecard .tag,.pricecard h3{margin-bottom:0}
@@ -345,96 +344,102 @@ body{
     <div class="sec-head">
       <div class="eyebrow">Narxlar</div>
       <h2 class="disp">Narxlar</h2>
-      <p>Uch xil variant: mexanik, oddiy va avtomatik. Har biri 15 daqiqada tayyor bo'ladi.</p>
+      <p>Ikki toifa: mexanik va avtomat. Bittalab yoki komplekt qilib olasiz — har biri 15 daqiqada tayyor.</p>
     </div>
 
     <div class="prices">
       <div class="card pricecard">
         <span class="tag">Eng arzon</span>
-        <h3>Mexanik — muhr / shtamp / rekvizit</h3>
+        <h3>Mexanik</h3>
         <div class="price">
           <span class="price-amount">70 000</span>
           <span class="price-cur">so'mdan</span>
         </div>
-        <p class="price-note">Mexanik mexanizm · MCHJ, YaTT va X/K uchun</p>
+        <p class="price-note">Komplekt (muhr + shtamp) — 140 000 so'mdan</p>
         <ul class="plist">
-          <li>Muhr (41,5 mm), shtamp (40×50 mm) yoki rekvizit (32×65 mm)</li>
+          <li>Muhr, shtamp yoki rekvizit — bittalab buyurtma qilinadi</li>
           <li>Mexanik mexanizm, taxminan 3 yil xizmat qiladi</li>
           <li>Alohida shtempel yostiqchasi bilan · 15 daqiqada tayyor</li>
         </ul>
         <a class="btn btn-ghost" href="#buyurtma">Buyurtma berish</a>
       </div>
 
-      <div class="card pricecard">
-        <span class="tag">Oddiy komplekt</span>
-        <h3>MCHJ muhri + shtampi</h3>
-        <div class="price">
-          <span class="price-amount">140 000</span>
-          <span class="price-cur">so'mdan</span>
-        </div>
-        <p class="price-note">Oddiy variant · alohida bo'yoq yostiqchasi bilan</p>
-        <ul class="plist">
-          <li>Muhr va shtamp bir to'plamda</li>
-          <li>Alohida shtempel bo'yog'i bilan ishlaydi</li>
-          <li>15 daqiqada tayyor</li>
-        </ul>
-        <a class="btn btn-ghost" href="#buyurtma">Buyurtma berish</a>
-      </div>
-
       <div class="card pricecard pop">
         <span class="badge-pop">Ommabop</span>
-        <span class="tag">Avtomatik komplekt</span>
-        <h3>Avtomatik muhr + shtamp</h3>
+        <span class="tag">Avtomat</span>
+        <h3>Avtomat</h3>
         <div class="price">
-          <span class="price-amount">320 000</span>
-          <span class="price-cur">so'm</span>
+          <span class="price-amount">160 000</span>
+          <span class="price-cur">so'mdan</span>
         </div>
-        <p class="price-note">Aftomat · ichki bo'yoq yostiqchali</p>
+        <p class="price-note">Komplekt (muhr + shtamp) — 320 000 so'm</p>
         <ul class="plist">
-          <li>Ichki bo'yoq yostiqchasi — bir bosishda tushadi</li>
-          <li>Toza, tez va uzoq muddat xizmat qiladi</li>
-          <li>15 daqiqada tayyor</li>
+          <li>Colop korpus, ichki bo'yoq yostiqchali (kraskasi bor)</li>
+          <li>Avtomat mexanizm, taxminan 5 yil xizmat qiladi</li>
+          <li>Toza va tez — bir bosishda tushadi · 15 daqiqada tayyor</li>
         </ul>
         <a class="btn btn-solid" href="#buyurtma">Buyurtma berish</a>
+      </div>
+
+      <div class="card pricecard">
+        <span class="tag">Maxsus</span>
+        <h3>Faksimile va maxsus shtamplar</h3>
+        <div class="price">
+          <span class="price-amount">60 000</span>
+          <span class="price-cur">so'mdan · mexanik</span>
+        </div>
+        <p class="price-note">Avtomat variant — 150 000 so'mdan</p>
+        <ul class="plist">
+          <li>Faksimile — imzo nusxasi shtampi</li>
+          <li>Datali shtamp — "To'landi", "Qabul qilindi", sana bilan</li>
+          <li>Boshqa maxsus shtamplar</li>
+        </ul>
+        <a class="btn btn-ghost" href="#buyurtma">Buyurtma berish</a>
       </div>
     </div>
 
     <div class="grid">
       <div class="card">
+        <img class="shot" src="muhr-mexanik.jpg" alt="Mexanik muhr namunasi — qora Printer korpusli dumaloq muhr, 41,5 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Mexanik</span>
+        <h3>Mexanik muhr — 41,5 mm</h3>
+        <p>Dumaloq mexanik muhr, Printer korpusi. 70 000 so'm.</p>
+      </div>
+      <div class="card">
         <img class="shot" src="shtamp-mexanik.jpg" alt="Mexanik shtamp namunasi — qora Printer korpusi, 40 dan 50 millimetr" loading="lazy" width="1080" height="674">
         <span class="tag">Mexanik</span>
         <h3>Mexanik shtamp — 40×50 mm</h3>
-        <p>Oddiy mexanizmli qora korpus. Taxminan 3 yil ishlaydi.</p>
+        <p>To'rtburchak mexanik shtamp, Printer korpusi. 70 000 so'm.</p>
       </div>
       <div class="card">
-        <img class="shot" src="muhr-oddiy.jpg" alt="Oddiy yumaloq MCHJ muhri namunasi" loading="lazy" width="1080" height="674">
-        <span class="tag">Oddiy</span>
-        <h3>Oddiy muhr</h3>
-        <p>Standart yumaloq muhr, alohida bo'yoq yostiqchasi bilan ishlaydi.</p>
+        <img class="shot" src="rekvizit-mexanik.jpg" alt="Mexanik rekvizit shtampi namunasi — qora Printer korpusi, 32 dan 65 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Mexanik</span>
+        <h3>Mexanik rekvizit — 32×65 mm</h3>
+        <p>Rekvizit uchun mexanik shtamp, Printer korpusi. 70 000 so'm.</p>
       </div>
       <div class="card">
-        <img class="shot" src="shtamp-oddiy.jpg" alt="Oddiy to'rtburchak rekvizit shtampi namunasi" loading="lazy" width="1080" height="674">
-        <span class="tag">Oddiy</span>
-        <h3>Oddiy shtamp</h3>
-        <p>Rekvizit va matnli oddiy shtamp. Qo'lda bo'yaladi.</p>
+        <img class="shot" src="muhr-mouse-r40-aftomat.jpg" alt="Avtomatik Colop Mouse R40 muhri namunasi, ichki bo'yoq yostiqchali" loading="lazy" width="1080" height="673">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik muhr — Mouse R40</h3>
+        <p>Colop Mouse R40, dumaloq 41,5 mm. 160 000 so'm.</p>
       </div>
       <div class="card">
-        <img class="shot" src="muhr-colop-r40-aftomat.jpg" alt="Avtomatik Colop R40 muhri namunasi, ichki bo'yoq yostiqchali" loading="lazy" width="1080" height="674">
+        <img class="shot" src="muhr-colop-r40-aftomat.jpg" alt="Avtomatik Colop Printer R40 muhri namunasi, ichki bo'yoq yostiqchali" loading="lazy" width="1080" height="674">
         <span class="tag">Avtomat</span>
         <h3>Avtomatik muhr — Colop R40</h3>
-        <p>Ichki bo'yoq yostiqchali avtomatik yumaloq muhr.</p>
+        <p>Colop Printer R40, dumaloq 40 mm. 160 000 so'm.</p>
       </div>
       <div class="card">
-        <img class="shot" src="shtamp-trodat-4924-aftomat.jpg" alt="Avtomatik Trodat 4924 shtampi namunasi" loading="lazy" width="1080" height="1006">
+        <img class="shot" src="rekvizit-colop-c50-aftomat.jpg" alt="Avtomatik Colop Printer C50 rekvizit shtampi namunasi, 30 dan 69 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik rekvizit — Colop C50</h3>
+        <p>Colop Printer C50, 30×69 mm. 160 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="shtamp-trodat-4924-aftomat.jpg" alt="Avtomatik Ideal by Trodat 4924 shtampi namunasi, 40 dan 40 millimetr" loading="lazy" width="1080" height="1006">
         <span class="tag">Avtomat</span>
         <h3>Avtomatik shtamp — Trodat 4924</h3>
-        <p>Ichki bo'yoqli avtomatik to'rtburchak shtamp.</p>
-      </div>
-      <div class="card">
-        <img class="shot" src="muhr-mouse-r40-aftomat.jpg" alt="Avtomatik Mouse korpusli R40 muhri namunasi" loading="lazy" width="1080" height="673">
-        <span class="tag">Avtomat</span>
-        <h3>Avtomatik muhr — Mouse</h3>
-        <p>Qulay Mouse korpusli avtomatik muhr, R40 o'lchamda.</p>
+        <p>Ideal by Trodat 4924, 40×40 mm. 160 000 so'm.</p>
       </div>
     </div>
   </div>
