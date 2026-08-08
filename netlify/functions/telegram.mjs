@@ -108,16 +108,39 @@ export default async (req) => {
   const SECRET = env("TELEGRAM_WEBHOOK_SECRET");
   if (!TOKEN || !OWNER) return ok();
 
+  if (!SECRET) {
+    console.warn(
+      "[telegram] TELEGRAM_WEBHOOK_SECRET o'rnatilmagan — webhook himoyasiz. Netlify env'ga qo'shing."
+    );
+  }
+
   if (SECRET && req.headers.get("x-telegram-bot-api-secret-token") !== SECRET) {
     return new Response("forbidden", { status: 403 });
   }
 
-  const api = (method, body) =>
-    fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).catch(() => {});
+  const api = async (method, body) => {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      let out = null;
+      try {
+        out = await res.json();
+      } catch (e) {
+        console.error(`[telegram] ${method}: javobni o'qib bo'lmadi`, res.status, e);
+        return null;
+      }
+      if (!out.ok) {
+        console.error(`[telegram] ${method} xato`, res.status, out.description || out);
+      }
+      return out;
+    } catch (e) {
+      console.error(`[telegram] ${method} so'rovi muvaffaqiyatsiz`, e);
+      return null;
+    }
+  };
 
   const send = (chat_id, text, reply_markup) =>
     api("sendMessage", {
@@ -131,18 +154,30 @@ export default async (req) => {
   let update;
   try {
     update = await req.json();
-  } catch {
+  } catch (e) {
+    console.error("[telegram] update JSON o'qib bo'lmadi", e);
     return ok();
   }
+
+  console.log(
+    "[telegram] update",
+    update.callback_query ? "callback_query" : update.message ? "message" : "boshqa"
+  );
 
   // ── Tugma bosilganda ──
   const cq = update.callback_query;
   if (cq) {
+    // Telegram spinnerini to'xtatish uchun har doim javob beramiz.
     await api("answerCallbackQuery", { callback_query_id: cq.id });
     const chat = cq.message?.chat?.id;
     if (!chat) return ok();
     if (cq.data === "menyu") await send(chat, SALOM, MENU);
     else if (JAVOB[cq.data]) await send(chat, JAVOB[cq.data], ORQAGA);
+    else {
+      // Noma'lum tugma — menyuni qaytaramiz.
+      console.warn("[telegram] noma'lum callback_data:", cq.data);
+      await send(chat, SALOM, MENU);
+    }
     return ok();
   }
 
@@ -157,23 +192,39 @@ export default async (req) => {
   if (egaMi) {
     const javob = msg.reply_to_message;
     if (javob) {
-      // Mijoz ID sini ikki yo'l bilan topamiz.
+      // Mijoz ID sini bir necha yo'l bilan topamiz:
+      // 1) forward_from.id, 2) matndagi #id, 3) captiondagi #id.
       let mijozId = javob.forward_from?.id || null;
       if (!mijozId) {
-        const belgi = (javob.text || javob.caption || "").match(/#id(\d+)/);
-        if (belgi) mijozId = belgi[1];
+        const belgiMatn = (javob.text || "").match(/#id(\d+)/);
+        if (belgiMatn) mijozId = belgiMatn[1];
+      }
+      if (!mijozId) {
+        const belgiCaption = (javob.caption || "").match(/#id(\d+)/);
+        if (belgiCaption) mijozId = belgiCaption[1];
       }
       if (mijozId) {
-        await api("copyMessage", {
+        const res = await api("copyMessage", {
           chat_id: mijozId,
           from_chat_id: chat,
           message_id: msg.message_id,
         });
-        await send(chat, "✅ Mijozga yuborildi.");
+        if (res && res.ok) {
+          console.log(`[telegram] egadan mijozga (#id${mijozId}) javob yetkazildi`);
+          await send(chat, "✅ Mijozga yuborildi.");
+        } else {
+          console.error(`[telegram] mijozga (#id${mijozId}) yuborib bo'lmadi`, res);
+          await send(
+            chat,
+            "⚠️ Mijozga yuborib bo'lmadi. Mijoz botni bloklagan bo'lishi mumkin."
+          );
+        }
       } else {
+        console.warn("[telegram] egadan javob: mijoz ID topilmadi");
         await send(
           chat,
-          "Mijozni aniqlay olmadim. <b>#id</b> raqami bor xabarga javob yozing."
+          "Mijozni aniqlay olmadim. Iltimos, <b>#id</b> raqami bor bildirishnoma xabariga " +
+            "(forward qilingan xabarning o'ziga emas) reply qilib javob yozing."
         );
       }
     }
