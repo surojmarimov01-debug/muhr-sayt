@@ -68,6 +68,11 @@ body{
   color:var(--muted);text-decoration:none;white-space:nowrap;
 }
 .nav-tel:hover{color:var(--paper)}
+.nav-lnk{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.04em;
+  color:var(--muted);text-decoration:none;
+}
+.nav-lnk:hover{color:var(--paper)}
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -162,6 +167,34 @@ body{
   border:1px solid var(--brass-dim);border-radius:999px;padding:3px 10px;margin-bottom:14px;
 }
 
+/* ---------- pricing ---------- */
+.prices{display:grid;gap:14px;margin-bottom:clamp(26px,4vw,42px);grid-template-columns:repeat(auto-fit,minmax(238px,1fr))}
+.pricecard{position:relative;display:flex;flex-direction:column;gap:14px}
+.pricecard.pop{border-color:rgba(201,169,97,.5)}
+.pricecard .tag,.pricecard h3{margin-bottom:0}
+.badge-pop{
+  position:absolute;top:-12px;right:18px;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#221704;background:var(--brass);
+  border-radius:999px;padding:4px 12px;box-shadow:0 6px 18px rgba(201,169,97,.28);
+}
+.price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.price-amount{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 118,'wght' 800;
+  font-size:clamp(30px,5.4vw,44px);color:var(--brass);line-height:1;
+}
+.price-cur{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);letter-spacing:.06em}
+.price-note{color:var(--muted);font-size:13px;font-family:"IBM Plex Mono",monospace;line-height:1.5}
+.plist{list-style:none;display:grid;gap:9px;margin:2px 0}
+.plist li{position:relative;padding-left:22px;color:var(--paper);font-size:14.5px}
+.plist li::before{content:"";position:absolute;left:2px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--violet-lite)}
+.pricecard .btn{margin-top:auto}
+.shot{
+  width:100%;aspect-ratio:4/3;object-fit:cover;display:block;
+  border-radius:calc(var(--r) - 4px);border:1px solid rgba(169,145,245,.2);
+  margin-bottom:14px;background:var(--ink-900);
+}
+
 /* steps — real sequence, order matters */
 .steps{display:grid;gap:1px;background:rgba(169,145,245,.18);border-radius:var(--r);overflow:hidden}
 @media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
@@ -233,6 +266,7 @@ body{
   <div class="wrap nav-in">
     <a class="mark" href="#top">SHTAMP<span>CHI</span></a>
     <div class="nav-links">
+      <a class="nav-lnk" href="#narxlar">Narxlar</a>
       <a class="nav-tel" href="tel:+998994201151">+998 99 420 11 51</a>
       <a class="btn btn-solid btn-sm" href="#buyurtma">Buyurtma</a>
     </div>
@@ -305,7 +339,113 @@ body{
   </div>
 </section>
 
-<section class="sec">
+<section class="sec" id="narxlar">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Narxlar</div>
+      <h2 class="disp">Narxlar</h2>
+      <p>Ikki toifa: mexanik va avtomat. Bittalab yoki komplekt qilib olasiz — har biri 15 daqiqada tayyor.</p>
+    </div>
+
+    <div class="prices">
+      <div class="card pricecard">
+        <span class="tag">Eng arzon</span>
+        <h3>Mexanik</h3>
+        <div class="price">
+          <span class="price-amount">70 000</span>
+          <span class="price-cur">so'mdan</span>
+        </div>
+        <p class="price-note">Komplekt (muhr + shtamp) — 140 000 so'mdan</p>
+        <ul class="plist">
+          <li>Muhr, shtamp yoki rekvizit — bittalab buyurtma qilinadi</li>
+          <li>Mexanik mexanizm, taxminan 3 yil xizmat qiladi</li>
+          <li>Alohida shtempel yostiqchasi bilan · 15 daqiqada tayyor</li>
+        </ul>
+        <a class="btn btn-ghost" href="#buyurtma">Buyurtma berish</a>
+      </div>
+
+      <div class="card pricecard pop">
+        <span class="badge-pop">Ommabop</span>
+        <span class="tag">Avtomat</span>
+        <h3>Avtomat</h3>
+        <div class="price">
+          <span class="price-amount">160 000</span>
+          <span class="price-cur">so'mdan</span>
+        </div>
+        <p class="price-note">Komplekt (muhr + shtamp) — 320 000 so'm</p>
+        <ul class="plist">
+          <li>Colop korpus, ichki bo'yoq yostiqchali (kraskasi bor)</li>
+          <li>Avtomat mexanizm, taxminan 5 yil xizmat qiladi</li>
+          <li>Toza va tez — bir bosishda tushadi · 15 daqiqada tayyor</li>
+        </ul>
+        <a class="btn btn-solid" href="#buyurtma">Buyurtma berish</a>
+      </div>
+
+      <div class="card pricecard">
+        <span class="tag">Maxsus</span>
+        <h3>Faksimile va maxsus shtamplar</h3>
+        <div class="price">
+          <span class="price-amount">60 000</span>
+          <span class="price-cur">so'mdan · mexanik</span>
+        </div>
+        <p class="price-note">Avtomat variant — 150 000 so'mdan</p>
+        <ul class="plist">
+          <li>Faksimile — imzo nusxasi shtampi</li>
+          <li>Datali shtamp — "To'landi", "Qabul qilindi", sana bilan</li>
+          <li>Boshqa maxsus shtamplar</li>
+        </ul>
+        <a class="btn btn-ghost" href="#buyurtma">Buyurtma berish</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <img class="shot" src="muhr-mexanik.jpg" alt="Mexanik muhr namunasi — qora Printer korpusli dumaloq muhr, 41,5 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Mexanik</span>
+        <h3>Mexanik muhr — 41,5 mm</h3>
+        <p>Dumaloq mexanik muhr, Printer korpusi. 70 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="shtamp-mexanik.jpg" alt="Mexanik shtamp namunasi — qora Printer korpusi, 40 dan 50 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Mexanik</span>
+        <h3>Mexanik shtamp — 40×50 mm</h3>
+        <p>To'rtburchak mexanik shtamp, Printer korpusi. 70 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="rekvizit-mexanik.jpg" alt="Mexanik rekvizit shtampi namunasi — qora Printer korpusi, 32 dan 65 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Mexanik</span>
+        <h3>Mexanik rekvizit — 32×65 mm</h3>
+        <p>Rekvizit uchun mexanik shtamp, Printer korpusi. 70 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="muhr-mouse-r40-aftomat.jpg" alt="Avtomatik Colop Mouse R40 muhri namunasi, ichki bo'yoq yostiqchali" loading="lazy" width="1080" height="673">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik muhr — Mouse R40</h3>
+        <p>Colop Mouse R40, dumaloq 41,5 mm. 160 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="muhr-colop-r40-aftomat.jpg" alt="Avtomatik Colop Printer R40 muhri namunasi, ichki bo'yoq yostiqchali" loading="lazy" width="1080" height="674">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik muhr — Colop R40</h3>
+        <p>Colop Printer R40, dumaloq 40 mm. 160 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="rekvizit-colop-c50-aftomat.jpg" alt="Avtomatik Colop Printer C50 rekvizit shtampi namunasi, 30 dan 69 millimetr" loading="lazy" width="1080" height="674">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik rekvizit — Colop C50</h3>
+        <p>Colop Printer C50, 30×69 mm. 160 000 so'm.</p>
+      </div>
+      <div class="card">
+        <img class="shot" src="shtamp-trodat-4924-aftomat.jpg" alt="Avtomatik Ideal by Trodat 4924 shtampi namunasi, 40 dan 40 millimetr" loading="lazy" width="1080" height="1006">
+        <span class="tag">Avtomat</span>
+        <h3>Avtomatik shtamp — Trodat 4924</h3>
+        <p>Ideal by Trodat 4924, 40×40 mm. 160 000 so'm.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec band">
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow">Uch qadam</div>
@@ -332,7 +472,7 @@ body{
   </div>
 </section>
 
-<section class="sec band" id="buyurtma">
+<section class="sec" id="buyurtma">
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow">Buyurtma</div>
