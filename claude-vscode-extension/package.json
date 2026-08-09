@@ -6,6 +6,8 @@
   "publisher": "local-dev",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["AI", "Chat", "Other"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/surojmarimov01-debug/muhr-sayt" },
   "main": "./out/extension.js",
   "activationEvents": ["onView:claudeChatView"],
   "contributes": {
