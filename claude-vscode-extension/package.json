@@ -1,0 +1,55 @@
+{
+  "name": "claude-chat-vscode",
+  "displayName": "Claude Chat",
+  "description": "Anthropic Claude API bilan integratsiya — VS Code ichida chat va kod yordamchisi",
+  "version": "0.1.0",
+  "publisher": "local-dev",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["AI", "Chat", "Other"],
+  "main": "./out/extension.js",
+  "activationEvents": ["onView:claudeChatView"],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "claude-chat", "title": "Claude Chat", "icon": "media/claude-icon.svg" }
+      ]
+    },
+    "views": {
+      "claude-chat": [
+        { "id": "claudeChatView", "name": "Claude Chat", "type": "webview" }
+      ]
+    },
+    "commands": [
+      { "command": "claude.setApiKey", "title": "Claude: Set API Key" },
+      { "command": "claude.newChat", "title": "Claude: New Chat" },
+      { "command": "claude.explainSelection", "title": "Claude: Explain Selection" }
+    ],
+    "configuration": {
+      "title": "Claude Chat",
+      "properties": {
+        "claude.model": {
+          "type": "string",
+          "default": "claude-sonnet-5",
+          "markdownDescription": "Model ID. O'zingizga mavjud eng so'nggi modelni yozing — [modellar ro'yxati](https://docs.anthropic.com/en/docs/about-claude/models)."
+        },
+        "claude.maxTokens": { "type": "number", "default": 4096, "description": "Javob uchun maksimal token soni." },
+        "claude.systemPrompt": {
+          "type": "string",
+          "default": "You are a helpful coding assistant integrated into VS Code. Be concise and use Markdown code blocks.",
+          "description": "Tizim ko'rsatmasi (system prompt)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": { "@anthropic-ai/sdk": "^0.30.0" }
+}
