@@ -255,6 +255,79 @@ body{
 .foot p{color:var(--muted);font-size:14px}
 .foot .mark{font-size:22px;display:inline-block;margin-bottom:10px}
 
+/* ---------- ai chat yordamchi ---------- */
+.chat-fab{
+  position:fixed;right:20px;bottom:20px;z-index:60;
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 110,'wght' 700;
+  text-transform:uppercase;letter-spacing:.05em;font-size:13px;
+  padding:13px 20px;border-radius:999px;border:none;cursor:pointer;
+  background:var(--brass);color:#221704;
+  box-shadow:0 8px 26px rgba(201,169,97,.34);
+  transition:transform .16s,box-shadow .2s;
+}
+.chat-fab:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(201,169,97,.44)}
+.chat-fab.hide{display:none}
+.chat-panel{
+  position:fixed;right:20px;bottom:20px;z-index:61;
+  width:min(380px,calc(100vw - 32px));
+  height:min(560px,calc(100vh - 40px));
+  display:none;flex-direction:column;
+  background:var(--ink-800);
+  border:1px solid rgba(201,169,97,.32);
+  border-radius:18px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.chat-panel.on{display:flex}
+.chat-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px;border-bottom:1px solid rgba(169,145,245,.16);
+  background:var(--ink-700);
+}
+.chat-head .t{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 112,'wght' 700;
+  font-size:15px;text-transform:uppercase;letter-spacing:.03em;
+}
+.chat-head .t span{color:var(--brass)}
+.chat-head .sub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin-top:2px}
+.chat-x{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:24px;line-height:1;padding:2px 8px;border-radius:8px;
+}
+.chat-x:hover{color:var(--paper);background:rgba(169,145,245,.12)}
+.chat-body{
+  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+}
+.msg{
+  max-width:84%;padding:10px 13px;border-radius:13px;font-size:14.5px;line-height:1.5;
+  white-space:pre-wrap;overflow-wrap:break-word;
+}
+.msg.bot{
+  align-self:flex-start;background:var(--ink-700);
+  border:1px solid rgba(169,145,245,.16);border-bottom-left-radius:4px;
+}
+.msg.me{
+  align-self:flex-end;background:var(--violet);color:#fff;
+  border-bottom-right-radius:4px;
+}
+.msg.typing{color:var(--muted);font-style:italic}
+.chat-foot{
+  display:flex;gap:8px;padding:12px;border-top:1px solid rgba(169,145,245,.16);
+  background:var(--ink-700);
+}
+.chat-foot input{
+  flex:1;background:var(--ink-900);color:var(--paper);
+  border:1.5px solid rgba(169,145,245,.28);border-radius:10px;
+  padding:11px 13px;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;
+}
+.chat-foot input:focus{border-color:var(--violet-lite);outline:none}
+.chat-send{
+  background:var(--brass);color:#221704;border:none;border-radius:10px;
+  padding:0 16px;font-family:"Archivo",sans-serif;font-variation-settings:'wght' 700;
+  text-transform:uppercase;font-size:12px;letter-spacing:.04em;cursor:pointer;
+}
+.chat-send[disabled]{opacity:.55;cursor:progress}
+
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
@@ -539,6 +612,24 @@ body{
   </div>
 </footer>
 
+<button class="chat-fab" id="chatFab" aria-label="AI yordamchi bilan suhbat">
+  💬 Savol bering
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-label="Shtampchi yordamchisi">
+  <div class="chat-head">
+    <div>
+      <div class="t">SHTAMP<span>CHI</span> yordamchi</div>
+      <div class="sub">Muhr · shtamp · narx bo'yicha savollar</div>
+    </div>
+    <button class="chat-x" id="chatX" aria-label="Yopish">&times;</button>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-foot">
+    <input id="chatInput" type="text" placeholder="Savolingizni yozing…" autocomplete="off">
+    <button class="chat-send" id="chatSend">Yuborish</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ---------- order form ---------- */
@@ -768,6 +859,75 @@ function sealTexture(inkColor,bg,alpha){
 
   /* auto-demo once, so the idea is visible without a tap */
   if(!reduce)setTimeout(press,2200);
+})();
+</script>
+<script>
+/* ---------- ai chat yordamchi ---------- */
+(function(){
+  var fab=document.getElementById('chatFab'),
+      panel=document.getElementById('chatPanel'),
+      body=document.getElementById('chatBody'),
+      input=document.getElementById('chatInput'),
+      send=document.getElementById('chatSend'),
+      x=document.getElementById('chatX');
+  if(!fab)return;
+
+  var history=[], greeted=false;
+
+  function scroll(){body.scrollTop=body.scrollHeight;}
+  function bubble(text,who){
+    var d=document.createElement('div');
+    d.className='msg '+who;
+    d.textContent=text;
+    body.appendChild(d);scroll();
+    return d;
+  }
+  function open(){
+    panel.classList.add('on');fab.classList.add('hide');
+    if(!greeted){
+      greeted=true;
+      bubble('Assalomu alaykum! Men Shtampchi yordamchisiman. Muhr, shtamp, narx yoki buyurtma bo\'yicha savolingizni yozing.','bot');
+    }
+    setTimeout(function(){input.focus();},60);
+  }
+  function close(){panel.classList.remove('on');fab.classList.remove('hide');}
+
+  fab.addEventListener('click',open);
+  x.addEventListener('click',close);
+
+  function ask(){
+    var q=input.value.trim();
+    if(!q)return;
+    input.value='';
+    bubble(q,'me');
+    history.push({role:'user',content:q});
+    send.disabled=true;
+    var typing=bubble('yozmoqda…','bot typing');
+
+    fetch('/.netlify/functions/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:history})
+    })
+    .then(function(r){return r.json().catch(function(){return {ok:false};});})
+    .then(function(res){
+      typing.remove();send.disabled=false;
+      if(res&&res.ok&&res.reply){
+        bubble(res.reply,'bot');
+        history.push({role:'assistant',content:res.reply});
+      }else{
+        bubble('Kechirasiz, hozir javob bera olmadim. Telegramda yozing: @shtampchi_bola yoki qo\'ng\'iroq qiling: +998 99 420 11 51','bot');
+      }
+      input.focus();
+    })
+    .catch(function(){
+      typing.remove();send.disabled=false;
+      bubble('Aloqa yo\'q. Iltimos Telegramda yozing: @shtampchi_bola','bot');
+    });
+  }
+
+  send.addEventListener('click',ask);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();ask();}});
 })();
 </script>
 </body>
