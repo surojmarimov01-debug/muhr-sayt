@@ -874,6 +874,19 @@ function sealTexture(inkColor,bg,alpha){
 
   var history=[], greeted=false;
 
+  /* Mijoz belgisi — brauzerda saqlanadi, shu tufayli qaytib kelgan mijozni
+     yordamchi eslab qoladi (xotira Honcho'da, serverda turadi). */
+  var mijoz=(function(){
+    try{
+      var kalit='shtampchi-mijoz', v=localStorage.getItem(kalit);
+      if(!v||!/^[A-Za-z0-9_-]{6,64}$/.test(v)){
+        v='mijoz-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+        localStorage.setItem(kalit,v);
+      }
+      return v;
+    }catch(e){return '';}   /* localStorage yopiq bo'lsa — xotirasiz ishlayveradi */
+  })();
+
   function scroll(){body.scrollTop=body.scrollHeight;}
   function bubble(text,who){
     var d=document.createElement('div');
@@ -907,7 +920,7 @@ function sealTexture(inkColor,bg,alpha){
     fetch('/.netlify/functions/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:history})
+      body:JSON.stringify({messages:history,peer:mijoz})
     })
     .then(function(r){return r.json().catch(function(){return {ok:false};});})
     .then(function(res){
