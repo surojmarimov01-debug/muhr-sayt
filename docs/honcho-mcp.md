@@ -29,7 +29,24 @@ HONCHO_API_KEY=hch-sizning-haqiqiy-kalitingiz
 
 ## 3-qadam — Ulash
 
-### Claude Code (tavsiya etiladi)
+### Claude Code — Windows (PowerShell)
+
+Eng oson yo'l, bitta buyruq (hamma papkada ishlaydi):
+
+```powershell
+claude mcp add honcho --scope user --transport http --url "https://mcp.honcho.dev" --header "Authorization: Bearer hch-sizning-kalitingiz"
+```
+
+Yoki skript orqali:
+
+```powershell
+.\scripts\honcho-mcp-setup.ps1 -ApiKey hch-sizning-kalitingiz
+```
+
+> "running scripts is disabled" xatosi chiqsa, avval shuni bajaring:
+> `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
+### Claude Code — macOS / Linux
 
 ```bash
 ./scripts/honcho-mcp-setup.sh
@@ -45,6 +62,9 @@ claude mcp add honcho \
   --url "https://mcp.honcho.dev" \
   --header "Authorization: Bearer hch-sizning-kalitingiz"
 ```
+
+> `--scope user` qo'shsangiz, sozlama barcha loyihalarda ishlaydi.
+> Faqat shu loyihada kerak bo'lsa, uni tushirib qoldiring.
 
 ### VS Code (Copilot Chat)
 
