@@ -1,0 +1,13 @@
+{
+  "name": "shtampchi-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kompyuterda o'zbekcha buyruq bajaradigan agent",
+  "scripts": {
+    "start": "node shtampchi.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.233"
+  }
+}
