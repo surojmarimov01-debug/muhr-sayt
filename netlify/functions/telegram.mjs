@@ -1,6 +1,8 @@
 // Telegram bot — avtomat javoblar, menyu va ikki tomonlama yozishma.
 // Webhook: https://SIZNING-SAYT/.netlify/functions/telegram
 
+import { buyurtmaHubspotgaYoz } from "../lib/hubspot.mjs";
+
 // ─────────── SOZLAMALAR ───────────
 const SHOP = {
   nom: "Shtampchi",
@@ -321,6 +323,14 @@ export default async (req) => {
           from.id +
           "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
       );
+
+      // HubSpot CRM'ga yozamiz — best-effort, mijoz/ega xabarlaridan keyin.
+      await buyurtmaHubspotgaYoz({
+        tur: turBor[1].trim(),
+        izoh: matnBor[1].trim(),
+        telefon: ans,
+        ism,
+      });
       return ok();
     }
   }
