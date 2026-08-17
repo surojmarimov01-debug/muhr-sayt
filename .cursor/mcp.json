@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "honcho": {
+      "url": "https://mcp.honcho.dev",
+      "headers": {
+        "Authorization": "Bearer ${env:HONCHO_API_KEY}"
+      }
+    }
+  }
+}
