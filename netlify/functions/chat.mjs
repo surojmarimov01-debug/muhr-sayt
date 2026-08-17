@@ -42,12 +42,12 @@ const xotiraOqi = async (key, ws, peer, savol) => {
   const q = encodeURIComponent(String(savol).slice(0, 300));
   const out = await honcho(
     key,
-    `/workspaces/${ws}/peers/${peer}/context?search_query=${q}&max_conclusions=12`,
+    `/workspaces/${ws}/peers/${peer}/context?search_query=${q}&max_conclusions=8`,
     { method: "GET" },
-    3000,
+    2000,
   );
   const rep = out && typeof out.representation === "string" ? out.representation.trim() : "";
-  return rep.slice(0, 3000);
+  return rep.slice(0, 1500);
 };
 
 // Avvalgi tashrifdagi suhbatning o'zi. Bu Honcho'ning xulosa chiqarish
@@ -56,9 +56,9 @@ const xotiraOqi = async (key, ws, peer, savol) => {
 const suhbatOqi = async (key, ws, sessiya, peer) => {
   const out = await honcho(
     key,
-    `/workspaces/${ws}/sessions/${sessiya}/context?tokens=900`,
+    `/workspaces/${ws}/sessions/${sessiya}/context?tokens=600`,
     { method: "GET" },
-    3000,
+    2000,
   );
   if (!out) return "";
 
@@ -66,31 +66,17 @@ const suhbatOqi = async (key, ws, sessiya, peer) => {
   const xulosa = out.summary && typeof out.summary.content === "string" ? out.summary.content.trim() : "";
   if (xulosa) qismlar.push("qisqacha — " + xulosa);
 
-  const xabarlar = Array.isArray(out.messages) ? out.messages.slice(-6) : [];
+  const xabarlar = Array.isArray(out.messages) ? out.messages.slice(-4) : [];
   for (const m of xabarlar) {
     const matn = String((m && m.content) || "").trim().slice(0, 300);
     if (matn) qismlar.push((m.peer_id === peer ? "mijoz" : "yordamchi") + ": " + matn);
   }
 
-  return qismlar.join(" / ").slice(0, 2000);
+  return qismlar.join(" / ").slice(0, 1200);
 };
 
-// Sessiya va peer'lar — get_or_create, ya'ni har safar chaqirsa ham xavfsiz.
-const sessiyaOch = (key, ws, peer, sessiya) =>
-  honcho(
-    key,
-    `/workspaces/${ws}/sessions`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        id: sessiya,
-        peers: { [peer]: {}, [BOT_PEER]: {} },
-        metadata: { manba: "sayt" },
-      }),
-    },
-    4000,
-  );
-
+// Xabar yozilganda sessiya ham, peer'lar ham avtomatik ochiladi —
+// shuning uchun alohida "sessiyani ochish" chaqiruvi kerak emas.
 const xotiraYoz = (key, ws, peer, sessiya, savol, javob) =>
   honcho(
     key,
@@ -104,7 +90,7 @@ const xotiraYoz = (key, ws, peer, sessiya, savol, javob) =>
         ],
       }),
     },
-    4000,
+    2500,
   );
 
 export default async (req) => {
@@ -159,10 +145,6 @@ export default async (req) => {
   const xotiraIshlaydi = Boolean(HKEY) && peer.length >= 6;
   const sessiya = xotiraIshlaydi ? `sayt-${peer}`.slice(0, 64) : "";
 
-  // Sessiyani ochish javobni kutmaydi — Claude'ga so'rov bilan yonma-yon ketadi.
-  const sessiyaVadasi = xotiraIshlaydi
-    ? sessiyaOch(HKEY, WS, peer, sessiya)
-    : Promise.resolve(null);
   // Ikkala o'qish yonma-yon ketadi. Avvalgi suhbat faqat sahifa yangi
   // ochilganda kerak — suhbat davom etayotgan bo'lsa, tarix allaqachon qo'lda.
   const [xotira, avvalgi] = xotiraIshlaydi
@@ -174,8 +156,10 @@ export default async (req) => {
 
   let system = [
     'Sen "Shtampchi" — Toshkent markazidagi muhr, shtamp va rekvizit tayyorlaydigan',
-    "do'konning veb-saytidagi yordamchisisan. Mijozlarga o'zbek tilida, qisqa va",
-    "samimiy javob ber (odatda 1-4 gap).",
+    "do'konning veb-saytidagi yordamchisisan. Mijozlarga o'zbek tilida, samimiy",
+    "javob ber. JAVOB QISQA BO'LSIN — eng ko'pi 2-3 qisqa gap. Aloqa",
+    "ma'lumotlarini (Telegram, telefon, sayt shakli) har javobda takrorlama —",
+    "faqat mijoz haqiqatan buyurtma bermoqchi bo'lganda ayt.",
     "DO'KON MA'LUMOTLARI:",
     "- Muhr, shtamp va rekvizitlar 15 daqiqada tayyorlanadi.",
     "- Narxlar: mexanik — 70 000 so'mdan (komplekt muhr+shtamp 140 000 so'mdan);",
@@ -217,7 +201,7 @@ export default async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
-        max_tokens: 400,
+        max_tokens: 250,
         system,
         messages,
       }),
@@ -238,7 +222,6 @@ export default async (req) => {
 
     // Suhbatni Honcho'ga yozamiz. Xato bo'lsa ham mijoz javobini oladi.
     if (xotiraIshlaydi && text) {
-      await sessiyaVadasi;
       await xotiraYoz(HKEY, WS, peer, sessiya, savol, reply);
     }
 
