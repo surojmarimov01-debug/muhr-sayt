@@ -2,6 +2,8 @@
 // TELEGRAM_TOKEN va TELEGRAM_CHAT_ID — Netlify'ning Environment variables
 // bo'limida saqlanadi, shuning uchun ular sayt kodida hech qachon ko'rinmaydi.
 
+import { buyurtmaHubspotgaYoz } from "../lib/hubspot.mjs";
+
 export default async (req) => {
   const json = (body, status = 200) =>
     new Response(JSON.stringify(body), {
@@ -80,6 +82,10 @@ export default async (req) => {
     if (!out.ok) {
       return json({ ok: false, error: out.description || "telegram" }, 502);
     }
+
+    // HubSpot CRM'ga yozamiz — best-effort, javobga ta'sir qilmaydi.
+    await buyurtmaHubspotgaYoz({ ism, telefon: tel, tur, izoh });
+
     return json({ ok: true });
   } catch {
     return json({ ok: false, error: "ulanish" }, 502);
