@@ -30,6 +30,15 @@ const RASMLAR = [
 const esc = (s) =>
   String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// esc() ning teskarisi — HubSpot kabi tashqi tizimlarga HTML belgilarisiz
+// toza matn ketishi uchun. &amp; oxirida almashtiriladi, aks holda ikki marta
+// ochilib ketadi.
+const unEsc = (s) =>
+  String(s || "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
 const env = (k) =>
   typeof Netlify !== "undefined" && Netlify.env ? Netlify.env.get(k) : process.env[k];
 
@@ -118,14 +127,26 @@ const QADAM1 =
   "Yuqoridagi rasmlardan tanlab yozing yoki o'zingiz ayting — masalan " +
   "\"MCHJ uchun avtomat muhr\" yoki \"rekvizit shtampi\".";
 
-const QADAM2 =
-  "📝 <b>Buyurtma (2/4)</b>\n\n" +
-  "🏢 Firma guvohnomasini yuboring — suratga olib tashlang yoki fayl qilib biriktiring.\n\n" +
+// Mijoz nima buyurtma qilgani keyingi savollarda ham ko'rinib turadi.
+// Bu bezak emas: funksiya holatni saqlamagani uchun oxirgi qadamda turni
+// aynan shu satrdan qayta o'qiymiz.
+const turSatri = (tur) => (tur ? "🧾 Tur: " + esc(tur) + "\n" : "");
+
+const turdan = (matn) => {
+  const m = /🧾 Tur:\s*(.+)/.exec(matn || "");
+  return m ? m[1].trim() : "";
+};
+
+const QADAM2 = (tur) =>
+  "📝 <b>Buyurtma (2/4)</b>\n" +
+  turSatri(tur) +
+  "\n🏢 Firma guvohnomasini yuboring — suratga olib tashlang yoki fayl qilib biriktiring.\n\n" +
   "<i>Muhrdagi matn shundan olinadi, shuning uchun yozuvlar aniq ko'rinsin.</i>";
 
-const QADAM3 =
-  "📝 <b>Buyurtma (3/4)</b>\n\n" +
-  "🪪 Rahbarning passporti yoki ID kartasini yuboring.\n\n" +
+const QADAM3 = (tur) =>
+  "📝 <b>Buyurtma (3/4)</b>\n" +
+  turSatri(tur) +
+  "\n🪪 Rahbarning passporti yoki ID kartasini yuboring.\n\n" +
   "<i>Muhr qonuniy tayyorlanishi uchun kerak.</i>";
 
 const TUGADI =
@@ -214,12 +235,13 @@ export default async (req) => {
   // 4-qadam: Telegram raqamni o'zi yuboradigan tugma.
   // Bu tugma reply_markup ni band qiladi, shuning uchun force_reply bilan
   // birga ishlata olmaymiz — mijoz javobi kontakt xabari bo'lib keladi.
-  const kontaktSora = (chat_id) =>
+  const kontaktSora = (chat_id, tur) =>
     api("sendMessage", {
       chat_id,
       text:
-        "📝 <b>Buyurtma (4/4)</b>\n\n" +
-        "📞 Telefon raqamingiz kerak — maket tayyor bo'lganda qo'ng'iroq qilamiz.\n\n" +
+        "📝 <b>Buyurtma (4/4)</b>\n" +
+        turSatri(tur) +
+        "\n📞 Telefon raqamingiz kerak — maket tayyor bo'lganda qo'ng'iroq qilamiz.\n\n" +
         "Pastdagi <b>«📱 Raqamni ulashish»</b> tugmasini bosing.",
       parse_mode: "HTML",
       reply_markup: {
@@ -339,7 +361,8 @@ export default async (req) => {
   }
 
   const from = msg.from || {};
-  const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
+  const ismXom = [from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz";
+  const ism = esc(ismXom);
   const username = from.username ? ` (@${esc(from.username)})` : "";
   const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
 
@@ -368,6 +391,17 @@ export default async (req) => {
         from.id +
         "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
     );
+
+    // HubSpot CRM — best-effort, mijoz/ega xabarlaridan keyin.
+    // Kontakt tugmasidan kelgan xabarda javob bog'lanishi yo'q, shuning
+    // uchun muhr turini bu yerdan o'qib bo'lmaydi — u Telegramda,
+    // #id belgisi bo'yicha topiladi.
+    await buyurtmaHubspotgaYoz({
+      tur: null,
+      izoh: "Tur va hujjatlar Telegramda — #id" + from.id,
+      telefon: raqam,
+      ism: ismXom,
+    });
     return ok();
   }
 
@@ -376,6 +410,9 @@ export default async (req) => {
 
   if (qadamMos) {
     const qadam = Number(qadamMos[1]);
+    // Muhr turi 1-qadamda aytilgan va shundan keyingi har bir savol matnida
+    // ko'chib yuradi — shu yerda qayta o'qiladi.
+    const tur = turdan(javob.text);
 
     if (matn === "/bekor" || matn === "/start" || matn === "/menu") {
       await send(chat, SALOM, MENU);
@@ -402,7 +439,7 @@ export default async (req) => {
           "\n#id" +
           from.id
       );
-      await soraw(chat, QADAM2);
+      await soraw(chat, QADAM2(qisqa));
       return ok();
     }
 
@@ -431,8 +468,8 @@ export default async (req) => {
         );
       }
 
-      if (qadam === 2) await soraw(chat, QADAM3);
-      else await kontaktSora(chat);
+      if (qadam === 2) await soraw(chat, QADAM3(tur));
+      else await kontaktSora(chat, tur);
       return ok();
     }
 
@@ -451,12 +488,12 @@ export default async (req) => {
           "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
       );
 
-      // HubSpot CRM'ga yozamiz — best-effort, mijoz/ega xabarlaridan keyin.
+      // HubSpot CRM — best-effort, mijoz/ega xabarlaridan keyin.
       await buyurtmaHubspotgaYoz({
-        tur: turBor[1].trim(),
-        izoh: matnBor[1].trim(),
-        telefon: ans,
-        ism,
+        tur: unEsc(tur) || null,
+        izoh: "Hujjatlar Telegramda — #id" + from.id,
+        telefon: qisqa,
+        ism: ismXom,
       });
       return ok();
     }
