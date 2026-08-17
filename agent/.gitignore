@@ -1,0 +1,4 @@
+node_modules/
+kalit.txt
+.env
+package-lock.json
