@@ -207,50 +207,58 @@ export default async (req) => {
   const matn = (msg.text || msg.caption || "").trim();
   const egaMi = String(chat) === String(OWNER);
 
+  // Buyurtma oqimini ega uchun ham, mijoz uchun ham oldindan aniqlaymiz:
+  // ega botning o'z "Buyurtma (n/3)" so'roviga javob yozsa — bu mijozga
+  // yetkaziladigan javob emas, balki oqimning o'zi.
+  const javob = msg.reply_to_message;
+  const oqimda = javob && /Buyurtma \(\d\/3\)/.test(javob.text || "");
+
+  const from = msg.from || {};
+  const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
+  const username = from.username ? ` (@${esc(from.username)})` : "";
+  const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
+
   // ── EGA javob yozganda: mijozga yetkazamiz ──
-  if (egaMi) {
-    const javob = msg.reply_to_message;
-    if (javob) {
-      // Mijoz ID sini bir necha yo'l bilan topamiz:
-      // 1) forward_from.id, 2) matndagi #id, 3) captiondagi #id.
-      let mijozId = javob.forward_from?.id || null;
-      if (!mijozId) {
-        const belgiMatn = (javob.text || "").match(/#id(\d+)/);
-        if (belgiMatn) mijozId = belgiMatn[1];
-      }
-      if (!mijozId) {
-        const belgiCaption = (javob.caption || "").match(/#id(\d+)/);
-        if (belgiCaption) mijozId = belgiCaption[1];
-      }
-      if (mijozId) {
-        const res = await api("copyMessage", {
-          chat_id: mijozId,
-          from_chat_id: chat,
-          message_id: msg.message_id,
-        });
-        if (res && res.ok) {
-          console.log(`[telegram] egadan mijozga (#id${mijozId}) javob yetkazildi`);
-          await send(chat, "✅ Mijozga yuborildi.");
-        } else {
-          console.error(`[telegram] mijozga (#id${mijozId}) yuborib bo'lmadi`, res);
-          await send(
-            chat,
-            "⚠️ Mijozga yuborib bo'lmadi. Mijoz botni bloklagan bo'lishi mumkin."
-          );
-        }
+  if (egaMi && javob && !oqimda) {
+    // Mijoz ID sini bir necha yo'l bilan topamiz:
+    // 1) forward_from.id, 2) matndagi #id, 3) captiondagi #id.
+    let mijozId = javob.forward_from?.id || null;
+    if (!mijozId) {
+      const belgiMatn = (javob.text || "").match(/#id(\d+)/);
+      if (belgiMatn) mijozId = belgiMatn[1];
+    }
+    if (!mijozId) {
+      const belgiCaption = (javob.caption || "").match(/#id(\d+)/);
+      if (belgiCaption) mijozId = belgiCaption[1];
+    }
+    if (mijozId) {
+      const res = await api("copyMessage", {
+        chat_id: mijozId,
+        from_chat_id: chat,
+        message_id: msg.message_id,
+      });
+      if (res && res.ok) {
+        console.log(`[telegram] egadan mijozga (#id${mijozId}) javob yetkazildi`);
+        await send(chat, "✅ Mijozga yuborildi.");
       } else {
-        console.warn("[telegram] egadan javob: mijoz ID topilmadi");
+        console.error(`[telegram] mijozga (#id${mijozId}) yuborib bo'lmadi`, res);
         await send(
           chat,
-          "Mijozni aniqlay olmadim. Iltimos, <b>#id</b> raqami bor bildirishnoma xabariga " +
-            "(forward qilingan xabarning o'ziga emas) reply qilib javob yozing."
+          "⚠️ Mijozga yuborib bo'lmadi. Mijoz botni bloklagan bo'lishi mumkin."
         );
       }
+    } else {
+      console.warn("[telegram] egadan javob: mijoz ID topilmadi");
+      await send(
+        chat,
+        "Mijozni aniqlay olmadim. Iltimos, <b>#id</b> raqami bor bildirishnoma xabariga " +
+          "(forward qilingan xabarning o'ziga emas) reply qilib javob yozing."
+      );
     }
     return ok();
   }
 
-  // ── MIJOZ xabari ──
+  // ── Buyruqlar (ega uchun ham, mijoz uchun ham bir xil) ──
   if (matn === "/start" || matn === "/menu" || matn === "/help") {
     await send(chat, SALOM, MENU);
     return ok();
@@ -264,14 +272,7 @@ export default async (req) => {
     return ok();
   }
 
-  const from = msg.from || {};
-  const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
-  const username = from.username ? ` (@${esc(from.username)})` : "";
-  const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
-
-  // ── Bosqichma-bosqich buyurtma oqimi ──
-  const javob = msg.reply_to_message;
-  const oqimda = javob && /Buyurtma \(\d\/3\)/.test(javob.text || "");
+  // ── Bosqichma-bosqich buyurtma oqimi (ega uchun ham, mijoz uchun ham) ──
   if (oqimda) {
     if (matn === "/bekor" || matn === "/start" || matn === "/menu") {
       await send(chat, SALOM, MENU);
@@ -335,6 +336,19 @@ export default async (req) => {
     }
   }
 
+  // ── EGA oddiy xabar yozganda: o'ziga forward qilmaymiz, qisqa yo'riqnoma ──
+  if (egaMi) {
+    console.log("[telegram] egadan oddiy xabar — yo'riqnoma yuborildi");
+    await send(
+      chat,
+      "Menyuni ochish uchun /menu yozing, buyurtma oqimini sinash uchun /buyurtma.\n\n" +
+        "Mijozga javob berish uchun <b>#id</b> raqami bor bildirishnoma xabariga reply qiling.",
+      MENU
+    );
+    return ok();
+  }
+
+  // ── MIJOZ xabari ──
   const kalit = matn ? javobTop(matn) : null;
 
   // Avtomat javob
