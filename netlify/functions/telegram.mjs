@@ -8,6 +8,8 @@ const SHOP = {
   nom: "Shtampchi",
   manzil: "Urganch tuman, Raysentr, Sherdor to'yxonasi yon tomoni",
   ishVaqti: "Dushanba–Shanba, 9:00–18:00",
+  // Mijozga KO'RSATILMAYDI: mijoz o'zi qo'ng'iroq qilmasin, biz bog'lanamiz.
+  // Shu sababli hozir hech qayerda ishlatilmaydi — kerak bo'lsa qaytarish uchun turibdi.
   telefon: "+998 99 420 11 51",
   operator: "shtampchi_bola", // @ belgisisiz
   muddat: "15 daqiqa",
@@ -83,8 +85,8 @@ const JAVOB = {
     "• Avtomat — <b>160 000 so'm</b> (komplekt: muhr + shtamp — 320 000)\n" +
     "• Faksimile / datali shtamp — mexanik 60 000 dan, avtomat 150 000 dan\n\n" +
     `Hammasi ${SHOP.muddat}da tayyor.\n\n` +
-    "Sizga nima kerakligini yozing — aniq narxini aytaman.\n" +
-    `Yoki qo'ng'iroq qiling: ${SHOP.telefon}`,
+    "Sizga nima kerakligini yozing — aniq narxini aytaman.\n\n" +
+    "Buyurtma berish uchun pastdagi tugmani bosing.",
 
   muddat:
     "<b>Qancha vaqtda tayyor</b>\n\n" +
@@ -96,8 +98,7 @@ const JAVOB = {
   manzil:
     "<b>Manzil va ish vaqti</b>\n\n" +
     manzilMatni +
-    `🕘 ${SHOP.ishVaqti}\n` +
-    `📞 ${SHOP.telefon}\n\n` +
+    `🕘 ${SHOP.ishVaqti}\n\n` +
     "Yetkazib berish ham bor.",
 
   buyurtma:
@@ -507,7 +508,7 @@ export default async (req) => {
   } else {
     await send(
       chat,
-      "Xabaringiz yuborildi ✅\n\nTez orada javob beramiz. Shoshilinch bo'lsa: " + SHOP.telefon,
+      "Xabaringiz yuborildi ✅\n\nTez orada javob beramiz — o'zimiz bog'lanamiz.",
       MENU
     );
   }
