@@ -1,0 +1,7 @@
+# Netlify CLI mahalliy holati — deploy paytida o'zi yaratiladi
+.netlify/
+
+# Bog'liqliklar va sirlar
+node_modules/
+.env
+.env.*
