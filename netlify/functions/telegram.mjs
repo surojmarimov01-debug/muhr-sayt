@@ -11,11 +11,33 @@ const SHOP = {
   telefon: "+998 99 420 11 51",
   operator: "shtampchi_bola", // @ belgisisiz
   muddat: "15 daqiqa",
+  sayt: "https://shtampchi-muhr.netlify.app",
 };
+
+// Buyurtma boshlanganda ko'rsatiladigan mahsulot rasmlari.
+// Fayllar public/ papkasida turadi, Telegram ularni sayt manzilidan oladi.
+const RASMLAR = [
+  ["muhr-colop-r40-aftomat.jpg", "Avtomat muhr — Colop R40"],
+  ["muhr-mouse-r40-aftomat.jpg", "Avtomat muhr — Mouse R40"],
+  ["muhr-mexanik.jpg", "Mexanik muhr"],
+  ["shtamp-trodat-4924-aftomat.jpg", "Avtomat shtamp — Trodat 4924"],
+  ["shtamp-mexanik.jpg", "Mexanik shtamp"],
+  ["rekvizit-colop-c50-aftomat.jpg", "Rekvizit shtampi — Colop C50"],
+  ["rekvizit-mexanik.jpg", "Rekvizit shtampi — mexanik"],
+];
 // ──────────────────────────────────
 
 const esc = (s) =>
   String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// esc() ning teskarisi — HubSpot kabi tashqi tizimlarga HTML belgilarisiz
+// toza matn ketishi uchun. &amp; oxirida almashtiriladi, aks holda ikki marta
+// ochilib ketadi.
+const unEsc = (s) =>
+  String(s || "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
 
 const env = (k) =>
   typeof Netlify !== "undefined" && Netlify.env ? Netlify.env.get(k) : process.env[k];
@@ -80,12 +102,57 @@ const JAVOB = {
 
   buyurtma:
     "<b>Buyurtma berish</b>\n\n" +
-    "Bitta xabarda yozing:\n\n" +
-    "• Nima kerak (muhr / shtamp / rekvizit)\n" +
-    "• Tashkilot nomi yoki muhrdagi matn\n" +
-    "• Telefon raqamingiz\n\n" +
-    "Guvohnoma yoki eski muhr surati bo'lsa — shuni yuboring.",
+    "To'rtta qadam, har biriga alohida javob berasiz:\n\n" +
+    "1. Qanaqa muhr kerak\n" +
+    "2. Firma guvohnomasi (surat)\n" +
+    "3. Rahbar passporti yoki ID kartasi (surat)\n" +
+    "4. Telefon raqamingiz\n\n" +
+    "Boshlash uchun /buyurtma deb yozing.",
 };
+
+// ── Buyurtma bosqichlari. Har bir savolda "Buyurtma (N/4)" belgisi bor —
+// funksiya holatni saqlamaydi, shuning uchun mijoz javob bergan xabardan
+// nechanchi qadamda ekanini shu belgi orqali biladi. ──
+const NARX_QISQA =
+  "<b>Narxlar</b>\n" +
+  "• Mexanik muhr — 70 000 so'mdan\n" +
+  "• Avtomat muhr (Colop/Trodat) — 160 000 so'mdan\n" +
+  "• Rekvizit shtampi — mexanik 60 000, avtomat 150 000 so'mdan\n" +
+  "• Komplekt (muhr + shtamp) — 140 000 / 320 000 so'mdan\n\n" +
+  `Hammasi ${SHOP.muddat}da tayyor.`;
+
+const QADAM1 =
+  "📝 <b>Buyurtma (1/4)</b>\n\n" +
+  "🧾 Qanaqa muhr kerak?\n\n" +
+  "Yuqoridagi rasmlardan tanlab yozing yoki o'zingiz ayting — masalan " +
+  "\"MCHJ uchun avtomat muhr\" yoki \"rekvizit shtampi\".";
+
+// Mijoz nima buyurtma qilgani keyingi savollarda ham ko'rinib turadi.
+// Bu bezak emas: funksiya holatni saqlamagani uchun oxirgi qadamda turni
+// aynan shu satrdan qayta o'qiymiz.
+const turSatri = (tur) => (tur ? "🧾 Tur: " + esc(tur) + "\n" : "");
+
+const turdan = (matn) => {
+  const m = /🧾 Tur:\s*(.+)/.exec(matn || "");
+  return m ? m[1].trim() : "";
+};
+
+const QADAM2 = (tur) =>
+  "📝 <b>Buyurtma (2/4)</b>\n" +
+  turSatri(tur) +
+  "\n🏢 Firma guvohnomasini yuboring — suratga olib tashlang yoki fayl qilib biriktiring.\n\n" +
+  "<i>Muhrdagi matn shundan olinadi, shuning uchun yozuvlar aniq ko'rinsin.</i>";
+
+const QADAM3 = (tur) =>
+  "📝 <b>Buyurtma (3/4)</b>\n" +
+  turSatri(tur) +
+  "\n🪪 Rahbarning passporti yoki ID kartasini yuboring.\n\n" +
+  "<i>Muhr qonuniy tayyorlanishi uchun kerak.</i>";
+
+const TUGADI =
+  "✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n" +
+  `Maketni tayyorlab, tez orada yuboramiz. Tasdiqlaganingizdan keyin ${SHOP.muddat}da tayyor bo'ladi.\n\n` +
+  "Rahmat! 🙏";
 
 // ── Kalit so'zlar. Tartib muhim: yuqoridagisi avval tekshiriladi. ──
 const QOIDALAR = [
@@ -165,6 +232,42 @@ export default async (req) => {
       reply_markup: { force_reply: true, input_field_placeholder: "Shu yerga yozing…" },
     });
 
+  // 4-qadam: Telegram raqamni o'zi yuboradigan tugma.
+  // Bu tugma reply_markup ni band qiladi, shuning uchun force_reply bilan
+  // birga ishlata olmaymiz — mijoz javobi kontakt xabari bo'lib keladi.
+  const kontaktSora = (chat_id, tur) =>
+    api("sendMessage", {
+      chat_id,
+      text:
+        "📝 <b>Buyurtma (4/4)</b>\n" +
+        turSatri(tur) +
+        "\n📞 Telefon raqamingiz kerak — maket tayyor bo'lganda qo'ng'iroq qilamiz.\n\n" +
+        "Pastdagi <b>«📱 Raqamni ulashish»</b> tugmasini bosing.",
+      parse_mode: "HTML",
+      reply_markup: {
+        keyboard: [[{ text: "📱 Raqamni ulashish", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+        input_field_placeholder: "Yoki raqamni qo'lda yozing",
+      },
+    });
+
+  // Buyurtma boshlanishi: avval mahsulot rasmlari va narxlar, keyin 1-savol.
+  const buyurtmaBoshla = async (chat_id) => {
+    const res = await api("sendMediaGroup", {
+      chat_id,
+      media: RASMLAR.map(([fayl, izoh], i) => ({
+        type: "photo",
+        media: `${SHOP.sayt}/${fayl}`,
+        caption: i === 0 ? NARX_QISQA : izoh,
+        parse_mode: i === 0 ? "HTML" : undefined,
+      })),
+    });
+    // Rasmlar yuborilmasa ham buyurtma to'xtamasin — narxlarni matn bilan beramiz.
+    if (!res || !res.ok) await send(chat_id, NARX_QISQA);
+    await soraw(chat_id, QADAM1);
+  };
+
   let update;
   try {
     update = await req.json();
@@ -186,11 +289,7 @@ export default async (req) => {
     const chat = cq.message?.chat?.id;
     if (!chat) return ok();
     if (cq.data === "menyu") await send(chat, SALOM, MENU);
-    else if (cq.data === "buyurtma")
-      await soraw(
-        chat,
-        "📝 <b>Buyurtma (1/3)</b>\n\n🧾 Nima kerak? (masalan: dumaloq muhr, shtamp, rekvizit)"
-      );
+    else if (cq.data === "buyurtma") await buyurtmaBoshla(chat);
     else if (JAVOB[cq.data]) await send(chat, JAVOB[cq.data], ORQAGA);
     else {
       // Noma'lum tugma — menyuni qaytaramiz.
@@ -257,66 +356,131 @@ export default async (req) => {
   }
 
   if (matn === "/buyurtma") {
-    await soraw(
-      chat,
-      "📝 <b>Buyurtma (1/3)</b>\n\n🧾 Nima kerak? (masalan: dumaloq muhr, shtamp, rekvizit)"
-    );
+    await buyurtmaBoshla(chat);
     return ok();
   }
 
   const from = msg.from || {};
-  const ism = esc([from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz");
+  const ismXom = [from.first_name, from.last_name].filter(Boolean).join(" ") || "Mijoz";
+  const ism = esc(ismXom);
   const username = from.username ? ` (@${esc(from.username)})` : "";
   const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
 
   // ── Bosqichma-bosqich buyurtma oqimi ──
+  //
+  // Funksiya holatni saqlamaydi. Shuning uchun mijoz nechanchi qadamda
+  // ekani botning o'z savolidagi "Buyurtma (N/4)" belgisidan o'qiladi —
+  // mijoz o'sha savolga javob qilib yozadi (force_reply).
+  //
+  // 4-qadam istisno: u yerda kontakt tugmasi turadi, tugma bosilganda
+  // kelgan xabarda javob bog'lanishi bo'lmaydi. Shuning uchun kontakt
+  // xabari alohida, oqimdan oldin tekshiriladi.
+
+  // 4-qadam: raqam tugma orqali keldi
+  if (msg.contact) {
+    const raqam = msg.contact.phone_number || "";
+    await send(chat, TUGADI, { remove_keyboard: true });
+    await send(chat, "Yana savolingiz bo'lsa — quyidagidan tanlang:", MENU);
+    await send(
+      OWNER,
+      "📞 <b>Buyurtma (4/4) — telefon</b>\n" +
+        esc(raqam) +
+        "\n\n" +
+        havola +
+        "\n#id" +
+        from.id +
+        "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
+    );
+
+    // HubSpot CRM — best-effort, mijoz/ega xabarlaridan keyin.
+    // Kontakt tugmasidan kelgan xabarda javob bog'lanishi yo'q, shuning
+    // uchun muhr turini bu yerdan o'qib bo'lmaydi — u Telegramda,
+    // #id belgisi bo'yicha topiladi.
+    await buyurtmaHubspotgaYoz({
+      tur: null,
+      izoh: "Tur va hujjatlar Telegramda — #id" + from.id,
+      telefon: raqam,
+      ism: ismXom,
+    });
+    return ok();
+  }
+
   const javob = msg.reply_to_message;
-  const oqimda = javob && /Buyurtma \(\d\/3\)/.test(javob.text || "");
-  if (oqimda) {
+  const qadamMos = javob ? /Buyurtma \((\d)\/4\)/.exec(javob.text || "") : null;
+
+  if (qadamMos) {
+    const qadam = Number(qadamMos[1]);
+    // Muhr turi 1-qadamda aytilgan va shundan keyingi har bir savol matnida
+    // ko'chib yuradi — shu yerda qayta o'qiladi.
+    const tur = turdan(javob.text);
+
     if (matn === "/bekor" || matn === "/start" || matn === "/menu") {
       await send(chat, SALOM, MENU);
       return ok();
     }
 
-    const turBor = /🧾 Tur:\s*(.+)/.exec(javob.text);
-    const matnBor = /✍️ Matn:\s*(.+)/.exec(javob.text);
-    const ans = matn.slice(0, 300);
+    // Mijoz surat yoki fayl yubordimi?
+    const hujjatBor = Boolean(msg.photo || msg.document);
+    const qisqa = matn.slice(0, 300);
 
-    if (!turBor) {
-      await soraw(
-        chat,
-        "🧾 Tur: " +
-          esc(ans) +
-          "\n\n📝 <b>Buyurtma (2/3)</b>\n✍️ Muhr/shtampdagi matn yoki tashkilot nomini yozing:"
-      );
-      return ok();
-    } else if (!matnBor) {
-      await soraw(
-        chat,
-        "🧾 Tur: " +
-          esc(turBor[1].trim()) +
-          "\n✍️ Matn: " +
-          esc(ans) +
-          "\n\n📝 <b>Buyurtma (3/3)</b>\n📞 Telefon raqamingizni yozing:"
-      );
-      return ok();
-    } else {
-      await send(
-        chat,
-        "✅ <b>Buyurtmangiz qabul qilindi!</b>\n\nTez orada siz bilan bog'lanamiz. Rahmat! 🙏",
-        MENU
-      );
+    // 1-qadam: qanaqa muhr kerak
+    if (qadam === 1) {
+      if (!qisqa) {
+        await soraw(chat, QADAM1);
+        return ok();
+      }
       await send(
         OWNER,
-        "🆕 <b>Yangi buyurtma</b>\n\n" +
+        "🆕 <b>Yangi buyurtma boshlandi</b>\n" +
           "🧾 Tur: " +
-          esc(turBor[1].trim()) +
-          "\n" +
-          "✍️ Matn: " +
-          esc(matnBor[1].trim()) +
-          "\n" +
-          "📞 Tel: " +
-          esc(ans) +
+          esc(qisqa) +
+          "\n\n" +
+          havola +
+          "\n#id" +
+          from.id
+      );
+      await soraw(chat, QADAM2(qisqa));
+      return ok();
+    }
+
+    // 2 va 3-qadam: hujjatlar
+    if (qadam === 2 || qadam === 3) {
+      const nomi = qadam === 2 ? "Firma guvohnomasi" : "Rahbar passporti / ID kartasi";
+      const belgi = `\n\n${havola}\n#id${from.id}`;
+
+      if (hujjatBor) {
+        // Suratni egaga nusxalaymiz — izoh bilan, kimdan kelgani ko'rinsin.
+        await api("copyMessage", {
+          chat_id: OWNER,
+          from_chat_id: chat,
+          message_id: msg.message_id,
+          caption: `📎 <b>${nomi}</b>` + belgi,
+          parse_mode: "HTML",
+        });
+      } else {
+        // Hujjat o'rniga matn yozgan bo'lsa ham oqim to'xtamaydi —
+        // egaga xabar beramiz, u mijoz bilan gaplashib oladi.
+        await send(
+          OWNER,
+          `⚠️ <b>${nomi}</b> — hujjat o'rniga yozdi:\n` +
+            esc(qisqa || "(bo'sh xabar)") +
+            belgi
+        );
+      }
+
+      if (qadam === 2) await soraw(chat, QADAM3(tur));
+      else await kontaktSora(chat, tur);
+      return ok();
+    }
+
+    // 4-qadam: tugma o'rniga qo'lda yozilgan raqam
+    if (qadam === 4) {
+      await send(chat, TUGADI, { remove_keyboard: true });
+      await send(chat, "Yana savolingiz bo'lsa — quyidagidan tanlang:", MENU);
+      await send(
+        OWNER,
+        "📞 <b>Buyurtma (4/4) — telefon</b>\n" +
+          esc(qisqa || "(bo'sh)") +
           "\n\n" +
           havola +
           "\n#id" +
@@ -324,12 +488,12 @@ export default async (req) => {
           "\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>"
       );
 
-      // HubSpot CRM'ga yozamiz — best-effort, mijoz/ega xabarlaridan keyin.
+      // HubSpot CRM — best-effort, mijoz/ega xabarlaridan keyin.
       await buyurtmaHubspotgaYoz({
-        tur: turBor[1].trim(),
-        izoh: matnBor[1].trim(),
-        telefon: ans,
-        ism,
+        tur: unEsc(tur) || null,
+        izoh: "Hujjatlar Telegramda — #id" + from.id,
+        telefon: qisqa,
+        ism: ismXom,
       });
       return ok();
     }
