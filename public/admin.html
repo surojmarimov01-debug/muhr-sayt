@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Boshqaruv — Shtampchi</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-900:#140E2E;--ink-800:#1B1340;--ink-700:#261B56;
+  --violet:#6E4FD4;--violet-lite:#A791F5;--brass:#C9A961;
+  --paper:#F0EDE4;--muted:#B6ADD2;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--ink-900);color:var(--paper);min-height:100vh;
+  font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.6;
+  display:flex;flex-direction:column;align-items:center;padding:40px 16px;
+}
+.wrap{width:100%;max-width:920px}
+h1{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wdth' 118,'wght' 800;
+  text-transform:uppercase;font-size:clamp(24px,4vw,32px);margin-bottom:6px;
+}
+h1 span{color:var(--brass)}
+.sub{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:32px}
+.card{
+  background:var(--ink-700);border:1px solid rgba(169,145,245,.2);
+  border-radius:var(--r);padding:28px;
+}
+.login-card{max-width:360px;margin:60px auto 0;text-align:center}
+.login-card p{color:var(--muted);font-size:14px;margin-bottom:20px}
+#gbtn{display:flex;justify-content:center;margin-top:6px}
+.msg{
+  margin-top:16px;padding:10px 12px;border-radius:10px;font-size:13.5px;display:none;
+  background:rgba(224,90,90,.14);border:1px solid #E05A5A;
+}
+.msg.on{display:block}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.who{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+.btn{
+  font-family:"Archivo",sans-serif;font-variation-settings:'wght' 700;
+  text-transform:uppercase;letter-spacing:.05em;font-size:12px;
+  padding:9px 16px;border-radius:999px;border:1.5px solid rgba(169,145,245,.4);
+  background:transparent;color:var(--paper);cursor:pointer;
+}
+.btn:hover{border-color:var(--violet-lite);background:rgba(110,79,212,.16)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid rgba(169,145,245,.16);vertical-align:top}
+th{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--brass);
+}
+td.izoh{color:var(--muted);max-width:320px;white-space:pre-wrap}
+.empty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+#panel{display:none}
+#panel.on{display:block}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>SHTAMP<span>CHI</span> — boshqaruv</h1>
+  <div class="sub">Buyurtmalar ro'yxati</div>
+
+  <div class="card login-card" id="loginCard">
+    <p>Kirish uchun Google akkauntingiz ruxsat etilgan bo'lishi kerak.</p>
+    <div id="gbtn"></div>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <div id="panel">
+    <div class="top">
+      <div class="who" id="who"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="refreshBtn">Yangilash</button>
+        <button class="btn" id="logoutBtn">Chiqish</button>
+      </div>
+    </div>
+    <div class="card" id="listCard">
+      <div id="ordersWrap"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(function(){
+  var loginCard=document.getElementById('loginCard'),
+      panel=document.getElementById('panel'),
+      loginMsg=document.getElementById('loginMsg'),
+      who=document.getElementById('who'),
+      ordersWrap=document.getElementById('ordersWrap'),
+      refreshBtn=document.getElementById('refreshBtn'),
+      logoutBtn=document.getElementById('logoutBtn');
+
+  function showMsg(t){loginMsg.textContent=t;loginMsg.className='msg on';}
+
+  function fmtOrders(orders){
+    if(!orders||!orders.length){
+      ordersWrap.innerHTML='<div class="empty">Hozircha buyurtma yo\'q.</div>';
+      return;
+    }
+    var rows=orders.map(function(o){
+      return '<tr>'+
+        '<td>'+esc(o.vaqt||'')+'</td>'+
+        '<td>'+esc(o.tur||'')+'</td>'+
+        '<td>'+esc(o.ism||'')+'</td>'+
+        '<td>'+esc(o.tel||'')+'</td>'+
+        '<td class="izoh">'+esc(o.izoh||'')+'</td>'+
+        '</tr>';
+    }).join('');
+    ordersWrap.innerHTML=
+      '<table><thead><tr><th>Vaqt</th><th>Turi</th><th>Ism</th><th>Telefon</th><th>Izoh</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table>';
+  }
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function loadOrders(){
+    ordersWrap.innerHTML='<div class="empty">Yuklanmoqda…</div>';
+    fetch('/.netlify/functions/orders')
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if(res&&res.ok)fmtOrders(res.orders);
+        else ordersWrap.innerHTML='<div class="empty">Yuklab bo\'lmadi.</div>';
+      })
+      .catch(function(){ordersWrap.innerHTML='<div class="empty">Aloqa yo\'q.</div>';});
+  }
+
+  function showPanel(email){
+    loginCard.style.display='none';
+    panel.classList.add('on');
+    who.textContent=email;
+    loadOrders();
+  }
+
+  refreshBtn.addEventListener('click',loadOrders);
+  logoutBtn.addEventListener('click',function(){
+    fetch('/.netlify/functions/admin-logout',{method:'POST'}).finally(function(){
+      window.location.reload();
+    });
+  });
+
+  function onCredential(resp){
+    fetch('/.netlify/functions/admin-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({credential:resp.credential})
+    })
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res&&res.ok)showPanel(res.email);
+      else showMsg('Kirish rad etildi: bu email ruxsat etilmagan yoki xatolik yuz berdi.');
+    })
+    .catch(function(){showMsg('Aloqa yo\'q. Qayta urinib ko\'ring.');});
+  }
+
+  function initGoogle(clientId){
+    if(!window.google||!clientId){
+      showMsg('Google login sozlanmagan. Netlify env: GOOGLE_CLIENT_ID.');
+      return;
+    }
+    google.accounts.id.initialize({client_id:clientId,callback:onCredential});
+    google.accounts.id.renderButton(document.getElementById('gbtn'),{theme:'filled_black',size:'large',text:'signin_with'});
+  }
+
+  fetch('/.netlify/functions/admin-session')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res&&res.ok){showPanel(res.email);return;}
+      return fetch('/.netlify/functions/admin-config')
+        .then(function(r){return r.json();})
+        .then(function(cfg){
+          function tryInit(){
+            if(window.google)initGoogle(cfg.clientId);
+            else setTimeout(tryInit,150);
+          }
+          tryInit();
+        });
+    })
+    .catch(function(){showMsg('Aloqa yo\'q.');});
+})();
+</script>
+</body>
+</html>
