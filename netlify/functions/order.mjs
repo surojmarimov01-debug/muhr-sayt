@@ -1,8 +1,9 @@
-// Saytdagi buyurtma shaklini Telegram botga uzatadi.
+// Saytdagi buyurtma shaklini Telegram botga uzatadi va admin panel uchun saqlaydi.
 // TELEGRAM_TOKEN va TELEGRAM_CHAT_ID — Netlify'ning Environment variables
 // bo'limida saqlanadi, shuning uchun ular sayt kodida hech qachon ko'rinmaydi.
 
 import { buyurtmaHubspotgaYoz } from "../lib/hubspot.mjs";
+import { getStore } from "@netlify/blobs";
 
 export default async (req) => {
   const json = (body, status = 200) =>
@@ -55,6 +56,14 @@ export default async (req) => {
   }
 
   const vaqt = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+
+  try {
+    const store = getStore("orders");
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    await store.setJSON(id, { id, tur, ism, tel, izoh, vaqt });
+  } catch {
+    // Admin panelga saqlashda xato bo'lsa ham, buyurtma Telegramga yuborilaveradi.
+  }
 
   const lines = [
     "🟣 <b>Yangi buyurtma</b>",
