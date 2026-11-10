@@ -1,4 +1,7 @@
 node_modules/
 kalit.txt
+telegram-token.txt
+telegram-sozlama.json
+kotib.txt
 .env
 package-lock.json
