@@ -240,15 +240,19 @@ gaplashadigan botini ishlatmang — ikkalasi bir tokendan ishlay olmaydi.
 2. Botga nom bering (masalan, `Mening yordamchim`) va manzil bering — oxiri
    `bot` bilan tugashi kerak (masalan, `suroj_yordamchi_bot`).
 3. BotFather uzun token beradi (`123456789:AAH...` ko'rinishida). Uni nusxa oling.
-4. `agent` papkasida **`telegram-token.txt`** nomli fayl yarating va ichiga
-   faqat shu tokenni yozing.
 
-`kalit.txt` (Anthropic API kaliti) ham kerak — 2-bo'limdagidek.
-Ikkala fayl ham git'ga tushmaydi.
+Anthropic API kaliti ham kerak (console.anthropic.com → **API keys** →
+**Create key**). Ikkalasini fayl qilib yozish shart emas: `boshla-telegram.cmd`
+birinchi ishga tushganda o'zi so'raydi — joylab (Ctrl+V) Enter bosasiz, u
+`kalit.txt` va `telegram-token.txt` fayllariga saqlaydi. Ikkala fayl ham
+git'ga tushmaydi. Kalit yoki token almashsa, faylni o'chirib yuboring —
+keyingi safar yana so'raydi.
 
 ### 9.2. Ishga tushiring va ulaning
 
 1. `agent` papkasidagi **`boshla-telegram.cmd`** ni ikki marta bosing.
+   Node.js o'rnatilmagan bo'lsa, o'zi o'rnatishga urinadi — keyin oynani
+   yopib, qayta oching. Kalit va tokenni so'rasa, joylab Enter bosing.
 2. Birinchi safar oynada **6 xonali kod** chiqadi:
 
    ```
