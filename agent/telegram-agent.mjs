@@ -17,6 +17,7 @@ import { resolve, dirname, basename, join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { randomInt, randomBytes } from "node:crypto";
+import { kotibYarat } from "./kotib.mjs";
 
 const BU_PAPKA = dirname(fileURLToPath(import.meta.url));
 
@@ -65,6 +66,13 @@ const SUKUT = {
   // Har safar so'ramasdan bajariladigan asboblar, masalan ["Write", "Edit"].
   soramasdanBajarsin: [],
   model: "",
+  // AI kotib: botga egadan boshqa odam yozsa, egasi nomidan javob beradi.
+  // Kotib faqat gaplashadi — kompyuterga tegolmaydi. Ko'rsatma: kotib.txt
+  kotib: true,
+  kotibModel: "claude-opus-5-5",
+  kotibKunlikLimit: 30, // bir odamga kuniga nechta AI javob
+  kotibKunlikJami: 300, // hammaga birgalikda kuniga nechta AI javob
+  toxtatilganlar: [], // AI javob bermaydigan odamlar (ID) — egasi o'zi yozadi
 };
 
 function sozlamaniOqi() {
@@ -504,8 +512,14 @@ Buyruqlar:
 /yangi — suhbatni noldan boshlash
 /toxtat — bajarilayotgan ishni to'xtatish
 /holat — hozir nima qilyapman
+/kotib — boshqalarga siz nomingizdan javob beradigan AI kotib
 
-Fayl o'zgartirish yoki dastur ishga tushirishdan oldin tugma bilan ruxsat so'rayman.`;
+Fayl o'zgartirish yoki dastur ishga tushirishdan oldin tugma bilan ruxsat so'rayman.
+
+Botga boshqa odam yozsa, AI kotib siz nomingizdan javob beradi va suhbatni sizga ko'rsatadi. O'sha xabarga reply qilsangiz, javobingiz o'sha odamga boradi.`;
+
+// Begonalar bilan gaplashadigan AI kotib (kompyuterga tegolmaydi).
+const kotib = kotibYarat({ BU_PAPKA, tg, yubor, sozlama, sozlamaniYoz, egalar, log, rang });
 
 // Juftlash kodi: egasi hali belgilanmagan bo'lsa, kompyuter ekranida chiqadi.
 // Kodni faqat kompyuter oldida turgan odam ko'radi.
@@ -519,13 +533,19 @@ async function xabarniQabulQil(x) {
   if (x.chat.type !== "private") return; // guruhlarda ishlamaydi
 
   if (!egalar.has(kim)) {
+    // Egasi bor — begonaga AI kotib javob beradi (kompyuterga yo'li yo'q).
+    if (!juftlashKodi) {
+      await kotib.begonaXabar(x);
+      return;
+    }
+
     const matn = (x.text || "").trim();
     const urinish = (begonalar.get(kim) || 0) + 1;
     begonalar.set(kim, urinish);
     // Kodni tanlab topishga urinishning oldini olish: 5 ta xatodan keyin javob bermaymiz.
     if (urinish > 5) return;
 
-    if (juftlashKodi && matn === juftlashKodi) {
+    if (matn === juftlashKodi) {
       egalar.add(kim);
       sozlama.egalar = [...egalar];
       sozlamaniYoz();
@@ -535,19 +555,19 @@ async function xabarniQabulQil(x) {
       await yubor(chatId, `✅ Ulandingiz! Endi bu bot faqat sizga bo'ysunadi.\n\n${YORDAM}`);
       return;
     }
-    log(rang.sariq(`Begona odam yozdi: ${x.from?.first_name || ""} @${x.from?.username || "-"} (ID ${kim}) — rad etildi.`));
-    if (juftlashKodi) {
-      await yubor(chatId, /^\d{6}$/.test(matn) ? "Kod noto'g'ri." : "Kompyuter ekranidagi 6 xonali kodni yuboring.");
-    } else {
-      await yubor(chatId, "Kechirasiz, bu shaxsiy yordamchi.");
-    }
+    log(rang.sariq(`Ulanish kodi kutilyapti, begona yozdi: ${x.from?.first_name || ""} @${x.from?.username || "-"} (ID ${kim}).`));
+    await yubor(chatId, /^\d{6}$/.test(matn) ? "Kod noto'g'ri." : "Kompyuter ekranidagi 6 xonali kodni yuboring.");
     return;
   }
+
+  // Ega kotib bildirishnomasiga reply qildi — javob o'sha odamga ketadi.
+  if (await kotib.egaReply(x)) return;
 
   const h = holat(chatId);
   const matn = (x.text || x.caption || "").trim();
   const buyruq = (x.text || "").trim().split(/[\s@]/)[0].toLowerCase();
 
+  if (buyruq.startsWith("/kotib") && (await kotib.buyruq(chatId, buyruq, x.text || ""))) return;
   if (buyruq === "/start" || buyruq === "/yordam" || buyruq === "/help") {
     await yubor(chatId, YORDAM);
     return;
@@ -615,6 +635,7 @@ async function xabarniQabulQil(x) {
 }
 
 async function tugmaniQabulQil(cq) {
+  if (await kotib.tugma(cq)) return;
   const [tur, kalit, javob] = String(cq.data || "").split(":");
   const k = kutilayotgan.get(kalit);
   if (tur !== "r" || !k || !egalar.has(cq.from?.id) || cq.message?.chat?.id !== k.chatId) {
@@ -676,6 +697,7 @@ async function main() {
   } else {
     console.log(rang.ochiq(`  Egalar: ${[...egalar].join(", ")}`));
   }
+  console.log(rang.ochiq(`  AI kotib:    ${sozlama.kotib ? "yoqilgan — begonalarga siz nomingizdan javob beradi (kotib.txt)" : "o'chirilgan"}`));
   console.log(rang.ochiq("  Oynani yopmang — yopilsa agent to'xtaydi. To'xtatish: Ctrl+C"));
   console.log();
 
