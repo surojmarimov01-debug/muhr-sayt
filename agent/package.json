@@ -1,13 +1,15 @@
 {
   "name": "shtampchi-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
-  "description": "Kompyuterda o'zbekcha buyruq bajaradigan agent",
+  "description": "Kompyuterda o'zbekcha buyruq bajaradigan agent — terminal yoki Telegram orqali",
   "scripts": {
-    "start": "node shtampchi.mjs"
+    "start": "node shtampchi.mjs",
+    "telegram": "node telegram-agent.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.233"
+    "@anthropic-ai/claude-agent-sdk": "^0.3.322",
+    "zod": "^4.0.0"
   }
 }

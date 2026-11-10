@@ -13,6 +13,13 @@ Nima qila oladi:
 - **Hujjat tayyorlash** — Word, Excel, PDF fayllar yaratish
 - **Internetdan qidirish** — narx, ma'lumot, hujjat topish
 
+Ikki xil ishlatish mumkin:
+
+| Qanday | Qaysi fayl | Qachon qulay |
+|---|---|---|
+| **Terminalda** — kompyuter oldida yozasiz | `boshla.cmd` | Kompyuter yoningizda bo'lsa |
+| **Telegramda** — telefondan yozasiz, javob Telegramga keladi | `boshla-telegram.cmd` | Uydan, yo'ldan, istalgan joydan — [9-bo'lim](#9-telegram-orqali-boshqarish) |
+
 ---
 
 ## 1. Nima kerak
@@ -203,3 +210,163 @@ o'rnatib, o'rnatish oynasida **"Add Python to PATH"** katagiga belgi qo'ying.
 **Agent papkaga kira olmayapti**
 `sozlama.json` dagi `ishPapkasi` ni tekshiring yoki kerakli papkani
 `qoshimchaPapkalar` ro'yxatiga qo'shing.
+
+---
+
+## 9. Telegram orqali boshqarish
+
+Kompyuter uyda yoki do'konda yoqilgan turadi, siz esa telefoningizdan
+Telegram botga yozasiz. Agent kompyuterda bajaradi va javobni Telegramga
+yozadi. Tayyor faylni (Excel, Word, PDF, rasm) ham Telegramga yuboradi.
+
+```
+Siz:   Ish stolidagi Excel fayllarni sanab ber
+Agent: ⏳ Ishga tushdim…
+Agent: ✅ Tayyor
+       Ish stolida 3 ta Excel fayl bor: narxlar.xlsx, oktyabr.xlsx, mijozlar.xlsx
+```
+
+### 9.1. Yangi bot yarating
+
+Bu agent uchun **alohida yangi bot** kerak. Do'konning mijozlar bilan
+gaplashadigan botini ishlatmang — ikkalasi bir tokendan ishlay olmaydi.
+
+1. Telegramda **@BotFather** ni oching va `/newbot` deb yozing.
+2. Botga nom bering (masalan, `Mening yordamchim`) va manzil bering — oxiri
+   `bot` bilan tugashi kerak (masalan, `suroj_yordamchi_bot`).
+3. BotFather uzun token beradi (`123456789:AAH...` ko'rinishida). Uni nusxa oling.
+4. `agent` papkasida **`telegram-token.txt`** nomli fayl yarating va ichiga
+   faqat shu tokenni yozing.
+
+`kalit.txt` (Anthropic API kaliti) ham kerak — 2-bo'limdagidek.
+Ikkala fayl ham git'ga tushmaydi.
+
+### 9.2. Ishga tushiring va ulaning
+
+1. `agent` papkasidagi **`boshla-telegram.cmd`** ni ikki marta bosing.
+2. Birinchi safar oynada **6 xonali kod** chiqadi:
+
+   ```
+     Bot hali hech kimga ulanmagan.
+     Telegramda @suroj_yordamchi_bot ni oching va shu kodni yuboring:
+
+           482913
+   ```
+
+3. Telegramda botingizni oching, **Start** bosing va shu kodni yuboring.
+4. "✅ Ulandingiz!" degan javob keladi. Tayyor — endi yozavering.
+
+Kod bir martalik. Ulangandan keyin bot **faqat sizga** bo'ysunadi, boshqa
+odam yozsa "bu shaxsiy yordamchi" deydi. Sizning Telegram raqamingiz (ID)
+`telegram-sozlama.json` fayliga yoziladi.
+
+### 9.3. Ruxsat tugmalari
+
+Fayl o'zgartirish, dastur ishga tushirish yoki saytga murojaat qilishdan
+oldin agent Telegramga tugma yuboradi:
+
+```
+⚠ Agent ruxsat so'rayapti (Bash):
+
+del C:\Users\Suroj\Desktop\eski-hisobot.xlsx
+
+[ ✅ Ha ]  [ ❌ Yo'q ]
+[ ♾ Doim ruxsat (Bash) ]
+```
+
+- **Ha** — shu safar bajarsin.
+- **Yo'q** — bajarmasin. Agent boshqa yo'l qidiradi yoki nima qilish
+  mumkinligini aytadi.
+- **Doim** — shu turdagi ishni (masalan, barcha `Bash` buyruqlarini) shu
+  suhbatda boshqa so'ramaydi. `/yangi` deb yozsangiz, bu ruxsat o'chadi.
+
+10 daqiqa ichida javob bermasangiz, so'rov rad etilgan hisoblanadi.
+Fayl o'qish va qidirish so'ralmaydi — ular hech narsani o'zgartirmaydi.
+
+### 9.4. Buyruqlar
+
+| Buyruq | Nima qiladi |
+|---|---|
+| `/yangi` | Suhbatni noldan boshlaydi (agent avvalgi gaplarni unutadi) |
+| `/toxtat` | Bajarilayotgan ishni to'xtatadi |
+| `/holat` | Agent bandmi yoki bo'shmi, qaysi papkada ishlayapti |
+| `/yordam` | Qisqa yo'riqnoma |
+
+Bir vaqtda bitta ish bajariladi. Agent band paytida yozsangiz, "oldingi ish
+bajarilyapti" deydi.
+
+### 9.5. Fayl yuborish va olish
+
+- **Siz yuborgan fayl yoki rasm** kompyuterdagi
+  `Downloads\Telegram-agent` papkasiga saqlanadi. Fayl ostiga nima qilishni
+  yozing, masalan: "buni Excel jadval qil". Telegram botlarga 20 MB gacha
+  fayl beradi.
+- **Agent tayyorlagan fayl** Telegramga hujjat bo'lib keladi (50 MB gacha).
+- Ovozli xabarni hozircha tushunmaydi — yozib yuboring.
+
+### 9.6. Sozlash — `telegram-sozlama.json`
+
+Dastur birinchi ishga tushganda bu faylni o'zi yaratadi:
+
+```json
+{
+  "ishPapkasi": "~",
+  "qoshimchaPapkalar": [],
+  "qabulPapkasi": "~/Downloads/Telegram-agent",
+  "egalar": [123456789],
+  "soramasdanBajarsin": [],
+  "model": ""
+}
+```
+
+| Nima | Ma'nosi |
+|---|---|
+| `ishPapkasi` | Agent qaysi papkada ishlaydi. `~` — sizning papkangiz (`C:\Users\Ism`): Ish stoli, Hujjatlar, Yuklanmalar hammasi shu ichida |
+| `qoshimchaPapkalar` | Boshqa disklar yoki papkalar, masalan `["D:\\Hisobotlar"]` |
+| `qabulPapkasi` | Telegramdan kelgan fayllar shu yerga saqlanadi |
+| `egalar` | Botni boshqara oladigan Telegram ID'lar. Bo'shatib qo'ysangiz, keyingi ishga tushishda yangi kod chiqadi |
+| `soramasdanBajarsin` | So'ramasdan bajariladigan asboblar, masalan `["Write", "Edit"]`. Bo'sh qoldirish xavfsizroq |
+| `model` | Bo'sh qoldiring |
+
+O'zgartirgandan keyin oynani yopib, `boshla-telegram.cmd` ni qayta oching.
+
+### 9.7. Kompyuter yonganda o'zi ishga tushsin
+
+1. **Win + R** bosing, `shell:startup` deb yozing, Enter.
+2. Ochilgan papkaga `boshla-telegram.cmd` ning **yorlig'ini** (shortcut) qo'ying:
+   faylni sichqonchaning o'ng tugmasi bilan shu papkaga sudrab olib boring →
+   "Create shortcuts here".
+
+Endi kompyuter yoqilganda agent o'zi ishga tushadi. Oynani yopmang —
+yopilsa agent to'xtaydi. Agent xato bilan to'xtab qolsa, `boshla-telegram.cmd`
+uni 10 soniyadan keyin o'zi qayta ishga tushiradi.
+
+Kompyuter uyquga ketsa, agent ham uxlaydi. Doim ishlashi kerak bo'lsa:
+**Sozlamalar → Tizim → Quvvat → Uyqu → Hech qachon**.
+
+### 9.8. Xavfsizlik
+
+- Telegram akkauntingiz kimning qo'lida bo'lsa, kompyuteringiz ham o'shaning
+  qo'lida. Telegramda **ikki bosqichli tekshiruvni** (Sozlamalar → Maxfiylik →
+  Ikki bosqichli tekshiruv) albatta yoqing.
+- Bot tokenini hech kimga bermang. Tarqalib ketsa, @BotFather da `/revoke`
+  qiling va yangisini `telegram-token.txt` ga yozing.
+- Agent `kalit.txt` va `telegram-token.txt` ni o'qimaydi va hech kimga
+  yubormaydi.
+- `Doim` tugmasini, ayniqsa `Bash` uchun, faqat nima bo'layotganini
+  tushunganingizda bosing.
+
+### 9.9. Muammolar
+
+**"Bu bot boshqa joyda ham ishlayapti"**
+Do'kon botining tokenini qo'ygansiz yoki `boshla-telegram.cmd` ikki marta
+ochilgan. Agent uchun alohida bot yarating (9.1) yoki ortiqcha oynani yoping.
+
+**"Telegram bot tokeni topilmadi" / "Token noto'g'ri"**
+`telegram-token.txt` fayli `agent` papkasida turganini, nomi aniq shunday
+ekanini (`telegram-token.txt.txt` emas) va ichida faqat token borligini
+tekshiring.
+
+**Bot javob bermayapti**
+Kompyuter yoqilganmi, `boshla-telegram.cmd` oynasi ochiqmi, internet bormi —
+shuni tekshiring. Oynada nima yozilganiga qarang.
