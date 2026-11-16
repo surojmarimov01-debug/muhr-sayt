@@ -3,6 +3,7 @@
 // bo'limida saqlanadi, shuning uchun ular sayt kodida hech qachon ko'rinmaydi.
 
 import { buyurtmaHubspotgaYoz } from "../lib/hubspot.mjs";
+import { mijozniJadvalgaYoz } from "../lib/sheets.mjs";
 
 export default async (req) => {
   const json = (body, status = 200) =>
@@ -85,6 +86,8 @@ export default async (req) => {
 
     // HubSpot CRM'ga yozamiz — best-effort, javobga ta'sir qilmaydi.
     await buyurtmaHubspotgaYoz({ ism, telefon: tel, tur, izoh });
+    // Google Sheets CRM — xuddi shunday best-effort.
+    await mijozniJadvalgaYoz({ ism, telefon: tel, tur, izoh, manba: "Sayt shakli", telegram: "" });
 
     return json({ ok: true });
   } catch {

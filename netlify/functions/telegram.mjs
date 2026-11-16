@@ -2,6 +2,7 @@
 // Webhook: https://SIZNING-SAYT/.netlify/functions/telegram
 
 import { buyurtmaHubspotgaYoz } from "../lib/hubspot.mjs";
+import { mijozniJadvalgaYoz, raqamTop } from "../lib/sheets.mjs";
 
 // ─────────── SOZLAMALAR ───────────
 const SHOP = {
@@ -366,6 +367,8 @@ export default async (req) => {
   const ism = esc(ismXom);
   const username = from.username ? ` (@${esc(from.username)})` : "";
   const havola = `<a href="tg://user?id=${from.id}">${ism}</a>${username}`;
+  // Google Sheets'dagi "Telegram" ustuni uchun — kim ekanini topish oson bo'lsin.
+  const tgBelgi = (from.username ? "@" + from.username + " · " : "") + "#id" + from.id;
 
   // ── Bosqichma-bosqich buyurtma oqimi ──
   //
@@ -402,6 +405,14 @@ export default async (req) => {
       izoh: "Tur va hujjatlar Telegramda — #id" + from.id,
       telefon: raqam,
       ism: ismXom,
+    });
+    await mijozniJadvalgaYoz({
+      ism: ismXom,
+      telefon: raqam,
+      tur: "",
+      izoh: "Buyurtma (4/4) — raqam tugma orqali. Tur va hujjatlar Telegramda.",
+      manba: "Telegram bot",
+      telegram: tgBelgi,
     });
     return ok();
   }
@@ -496,6 +507,14 @@ export default async (req) => {
         telefon: qisqa,
         ism: ismXom,
       });
+      await mijozniJadvalgaYoz({
+        ism: ismXom,
+        telefon: raqamTop(qisqa) || qisqa,
+        tur: unEsc(tur),
+        izoh: "Buyurtma (4/4) — raqam qo'lda yozildi. Hujjatlar Telegramda.",
+        manba: "Telegram bot",
+        telegram: tgBelgi,
+      });
       return ok();
     }
   }
@@ -524,6 +543,19 @@ export default async (req) => {
     (kalit ? `🤖 <b>Avtomat javob berildi</b> (${kalit})` : `❗ <b>Javob kerak</b>`) +
       `\n${havola}\n#id${from.id}\n\n<i>Javob berish uchun shu xabarga reply yozing.</i>`
   );
+
+  // Oddiy xabar ichida telefon raqam qoldirgan bo'lsa ham jadvalga tushadi.
+  const xabardagiRaqam = raqamTop(matn);
+  if (xabardagiRaqam) {
+    await mijozniJadvalgaYoz({
+      ism: ismXom,
+      telefon: xabardagiRaqam,
+      tur: "",
+      izoh: matn.slice(0, 1000),
+      manba: "Telegram xabar",
+      telegram: tgBelgi,
+    });
+  }
 
   return ok();
 };
