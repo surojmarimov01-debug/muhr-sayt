@@ -56,8 +56,9 @@ if (!existsSync(ISH_PAPKASI)) mkdirSync(ISH_PAPKASI, { recursive: true });
 // ─────────────── Asboblar va ruxsat ───────────────
 
 // Faqat o'qiydigan asboblar — ular hech narsani buzmaydi, so'ramaymiz.
+// ToolSearch — boshqa asboblarning tavsifini yuklaydi, o'zi hech narsa qilmaydi.
 const XAVFSIZ = new Set([
-  "Read", "Glob", "Grep", "WebSearch", "WebFetch",
+  "Read", "Glob", "Grep", "WebSearch", "WebFetch", "ToolSearch",
   "TodoWrite", "Task", "Skill", "NotebookRead",
 ]);
 
@@ -166,8 +167,11 @@ async function main() {
     const nomi = kirish.tool_name;
     const parametrlar = (kirish.tool_input ?? {});
 
-    if (XAVFSIZ.has(nomi) || doimiyRuxsat.has(nomi)) return { continue: true };
+    if (XAVFSIZ.has(nomi)) return { continue: true };
 
+    // "doim" deb ruxsat berilgan asboblarga ham aniq "allow" qaytaramiz
+    // (ruxsatSora ularni so'ramasdan true qaytaradi). Qarorsiz o'tkazib
+    // yuborilsa, ular allowedTools da yo'qligi uchun rad etiladi.
     const ruxsat = await ruxsatSora(nomi, parametrlar);
     return {
       hookSpecificOutput: {
@@ -202,7 +206,9 @@ async function main() {
       systemPrompt: { type: "preset", preset: "claude_code", append: QOIDALAR },
       allowedTools: RUXSAT_ETILGAN,
       permissionMode: "default",
-      hooks: { PreToolUse: [{ hooks: [ruxsatDarvozasi] }] },
+      // timeout — siz o'ylab javob berguncha hook kutadi (bir soatgacha).
+      // onFailure: "block" — hook xato bersa, buyruq har holda to'xtatiladi.
+      hooks: { PreToolUse: [{ hooks: [ruxsatDarvozasi], timeout: 3600, onFailure: "block" }] },
       // Kompyuterdagi ~/.claude sozlamalari ta'sir qilmasin: aks holda
       // ulardagi "ruxsat berilgan" qoidalar darvozani ochib yuborishi mumkin.
       settingSources: [],
